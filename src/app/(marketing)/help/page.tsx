@@ -9,22 +9,22 @@ export default function HelpPage() {
     <div className="mx-auto w-full max-w-6xl pt-12">
       <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
             {t("help.label")}
           </p>
-          <h1 className="mt-4 text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl">
+          <h1 className="mt-4 text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl dark:text-slate-100">
             {t("help.title")}
           </h1>
-          <p className="mt-4 max-w-xl text-base text-slate-600">
+          <p className="mt-4 max-w-xl text-base text-slate-600 dark:text-slate-300">
             {t("help.body")}
           </p>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-semibold text-slate-800">{t("help.contact.title")}</p>
-          <p className="mt-3 text-sm text-slate-600">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t("help.contact.title")}</p>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
             {t("help.contact.body")}
           </p>
-          <div className="mt-6 text-sm text-slate-600">
+          <div className="mt-6 text-sm text-slate-600 dark:text-slate-300">
             <p>{t("help.contact.email")}</p>
             <p className="mt-2">{t("help.contact.response")}</p>
           </div>
@@ -46,15 +46,15 @@ export default function HelpPage() {
             desc: t("help.card3.body"),
           },
         ].map((card) => (
-          <div key={card.title} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-base font-semibold text-slate-900">{card.title}</p>
-            <p className="mt-3 text-sm text-slate-600">{card.desc}</p>
+          <div key={card.title} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-base font-semibold text-slate-900 dark:text-slate-100">{card.title}</p>
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{card.desc}</p>
           </div>
         ))}
       </section>
 
-      <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-semibold text-slate-800">{t("help.faq.title")}</p>
+      <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t("help.faq.title")}</p>
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           {[
             {
@@ -75,8 +75,8 @@ export default function HelpPage() {
             },
           ].map((item) => (
             <div key={item.q}>
-              <p className="text-sm font-semibold text-slate-900">{item.q}</p>
-              <p className="mt-2 text-sm text-slate-600">{item.a}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.q}</p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{item.a}</p>
             </div>
           ))}
         </div>

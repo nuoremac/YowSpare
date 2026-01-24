@@ -1,5 +1,15 @@
 import { getDB, keys } from "./db";
-import { makeMockTenant, makeMockUsers, makeMockParts, makeMockBins, makeMockStock, makeMockSuppliers, makeMockCatalog } from "./mock";
+import {
+  makeMockTenant,
+  makeMockUsers,
+  makeMockAgencies,
+  makeMockUserAgencies,
+  makeMockParts,
+  makeMockBins,
+  makeMockStock,
+  makeMockSuppliers,
+  makeMockCatalog,
+} from "./mock";
 import type { Tenant, StockRow , CatalogRow } from "./type";
 
 export async function seedIfEmpty(tenantSlug: string) {
@@ -10,6 +20,8 @@ export async function seedIfEmpty(tenantSlug: string) {
 
   const tenant: Tenant = makeMockTenant(tenantSlug);
   const users = makeMockUsers(tenant.id);
+  const agencies = makeMockAgencies(tenant.id);
+  const userAgencies = makeMockUserAgencies(tenant.id);
   const parts = makeMockParts(tenant.id);
   const bins = makeMockBins(tenant.id);
   const stock = makeMockStock(tenant.id);
@@ -18,6 +30,8 @@ export async function seedIfEmpty(tenantSlug: string) {
 
   await db.clear("tenant");
   await db.clear("users");
+  await db.clear("agencies");
+  await db.clear("user_agencies");
   await db.clear("parts");
   await db.clear("bins");
   await db.clear("stock");
@@ -29,6 +43,8 @@ export async function seedIfEmpty(tenantSlug: string) {
   await db.put("tenant", tenant, "current");
 
   for (const u of users) await db.put("users", u);
+  for (const a of agencies) await db.put("agencies", a);
+  for (const ua of userAgencies) await db.put("user_agencies", ua);
   for (const p of parts) await db.put("parts", p);
   for (const b of bins) await db.put("bins", b);
 

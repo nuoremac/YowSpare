@@ -1,16 +1,87 @@
-import type { Tenant, User, Part, Bin, Stock, Supplier, SupplierCatalogItem } from "./type";
+import type { Tenant, User, Part, Bin, Stock, Supplier, SupplierCatalogItem, Agency, UserAgency } from "./type";
 
 export function makeMockTenant(slug: string): Tenant {
-  return { id: `t_${slug}`, slug, name: slug.toUpperCase() + " Industries" };
+  return {
+    id: `t_${slug}`,
+    slug,
+    name: slug.toUpperCase() + " Industries",
+    profile: {
+      taxNumber: "TX-984233",
+      registrationNumber: "BR-104455",
+      capitalShare: "5,000,000",
+      ceoName: "Amina Diallo",
+      yearFounded: 2006,
+      logoUrl: "/icons/yowspareicon.png",
+      websiteUrl: "https://yowspare.example.com",
+      socials: ["https://linkedin.com/company/yowspare"],
+      email: "contact@yowspare.example.com",
+      description: "Industrial MRO organization focused on uptime.",
+      legalForm: "LLC",
+      headquarterAgencyId: "a_hq",
+    },
+  };
 }
 
 export function makeMockUsers(tenantId: string): User[] {
   return [
-    { id: "u_admin", tenantId, email: "admin@company.com", name: "Tenant Admin", role: "PROCUREMENT" },
-    { id: "u_wh", tenantId, email: "warehouse@company.com", name: "Warehouse Manager", role: "WAREHOUSE" },
-    { id: "u_tech", tenantId, email: "tech@company.com", name: "Field Technician", role: "TECH" },
-    { id: "u_plan", tenantId, email: "planner@company.com", name: "MRO Planner", role: "PLANNER" },
-    { id: "u_vendor", tenantId, email: "vendor@supplier.com", name: "Vendor User", role: "SUPPLIER" },
+    { id: "u_org_admin", tenantId, email: "org.admin@company.com", name: "Org Admin", role: "ORG_ADMIN", agencyId: "a_hq", password: "Demo123!" },
+    { id: "u_tenant_admin", tenantId, email: "admin@company.com", name: "Tenant Admin", role: "TENANT_ADMIN", agencyId: "a_hq", password: "Demo123!" },
+    { id: "u_inv_mgr", tenantId, email: "inventory@company.com", name: "Inventory Manager", role: "INVENTORY_MANAGER", agencyId: "a_hq", password: "Demo123!" },
+    { id: "u_proc_mgr", tenantId, email: "procurement@company.com", name: "Procurement Manager", role: "PROCUREMENT_MANAGER", agencyId: "a_hq", password: "Demo123!" },
+    { id: "u_analyst", tenantId, email: "analyst@company.com", name: "Analyst", role: "ANALYST", agencyId: "a_hq", password: "Demo123!" },
+    { id: "u_tech", tenantId, email: "tech@company.com", name: "Field Technician", role: "TECH", agencyId: "a_hq", password: "Demo123!" },
+    { id: "u_wh", tenantId, email: "warehouse@company.com", name: "Warehouse Manager", role: "WAREHOUSE", agencyId: "a_hq", password: "Demo123!" },
+    { id: "u_plan", tenantId, email: "planner@company.com", name: "MRO Planner", role: "PLANNER", agencyId: "a_hq", password: "Demo123!" },
+    { id: "u_vendor", tenantId, email: "vendor@supplier.com", name: "Vendor User", role: "SUPPLIER", password: "Demo123!" },
+  ];
+}
+
+export function makeMockAgencies(tenantId: string): Agency[] {
+  return [
+    {
+      id: "a_hq",
+      organizationId: tenantId,
+      name: "Headquarters",
+      location: "Douala, Cameroon",
+      ownerId: "u_org_admin",
+      description: "Primary operations hub and executive offices.",
+      openTime: "07:30",
+      closeTime: "18:00",
+      contact: "+237 690 000 000",
+      averageRevenue: 4500000,
+      registrationNumbers: ["REG-CA-104455"],
+      totalAffiliatedCustomers: 120,
+      taxNumber: "TX-984233",
+    },
+    {
+      id: "a_north",
+      organizationId: tenantId,
+      name: "Northern Field Agency",
+      location: "Garoua, Cameroon",
+      ownerId: "u_tenant_admin",
+      description: "Field maintenance and rapid response site.",
+      openTime: "08:00",
+      closeTime: "17:30",
+      contact: "+237 699 000 111",
+      averageRevenue: 1800000,
+      registrationNumbers: ["REG-NO-209988"],
+      totalAffiliatedCustomers: 42,
+      taxNumber: "TX-203344",
+    },
+  ];
+}
+
+export function makeMockUserAgencies(tenantId: string): UserAgency[] {
+  return [
+    { id: "ua_org_admin_hq", tenantId, userId: "u_org_admin", agencyId: "a_hq", role: "ORG_ADMIN" },
+    { id: "ua_tenant_admin_hq", tenantId, userId: "u_tenant_admin", agencyId: "a_hq", role: "TENANT_ADMIN" },
+    { id: "ua_inv_hq", tenantId, userId: "u_inv_mgr", agencyId: "a_hq", role: "INVENTORY_MANAGER" },
+    { id: "ua_proc_hq", tenantId, userId: "u_proc_mgr", agencyId: "a_hq", role: "PROCUREMENT_MANAGER" },
+    { id: "ua_analyst_hq", tenantId, userId: "u_analyst", agencyId: "a_hq", role: "ANALYST" },
+    { id: "ua_tech_hq", tenantId, userId: "u_tech", agencyId: "a_hq", role: "TECH" },
+    { id: "ua_wh_hq", tenantId, userId: "u_wh", agencyId: "a_hq", role: "WAREHOUSE" },
+    { id: "ua_plan_hq", tenantId, userId: "u_plan", agencyId: "a_hq", role: "PLANNER" },
+    { id: "ua_vendor_hq", tenantId, userId: "u_vendor", agencyId: "a_hq", role: "SUPPLIER" },
   ];
 }
 

@@ -1,4 +1,6 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -16,10 +18,26 @@
   --font-mono: var(--font-geist-mono);
 }
 
+:root.theme-light {
+  --background: #ffffff;
+  --foreground: #171717;
+  --surface: #f5f7fb;
+  --surface-strong: #eef2f7;
+}
+
+:root.theme-dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --surface: #0f172a;
+  --surface-strong: #111827;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --surface: #0f172a;
+    --surface-strong: #111827;
   }
 }
 
@@ -27,6 +45,10 @@ body {
   background: var(--surface);
   color: #1f2933;
   font-family: "Manrope", "Segoe UI", system-ui, sans-serif;
+}
+
+.theme-dark body {
+  color: var(--foreground);
 }
 
 .hero-float {
@@ -40,5 +62,42 @@ body {
   }
   50% {
     transform: translateY(-6px);
+  }
+}
+
+.demo-flip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+.demo-flip:hover {
+  animation: demo-flip 0.7s ease-in-out;
+}
+
+@keyframes demo-flip {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(180deg);
+  }
+  100% {
+    transform: rotateX(360deg);
+  }
+}
+
+.demo-arrow {
+  animation: demo-arrow 1.4s ease-in-out infinite;
+}
+
+@keyframes demo-arrow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
   }
 }

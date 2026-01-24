@@ -18,6 +18,14 @@ export default function ProcurementPage() {
   const [pos, setPos] = useState<PurchaseOrder[]>([]);
   const [selectedPartId, setSelectedPartId] = useState<string>("");
   const { query } = usePageSearch();
+  const canAccess = [
+    "PROCUREMENT",
+    "PROCUREMENT_MANAGER",
+    "TENANT_ADMIN",
+    "ORG_ADMIN",
+    "SUPPLIER",
+  ].includes(role ?? "");
+  const isSupplier = role === "SUPPLIER";
 
   useEffect(() => {
     if (!tenant) return;
@@ -32,6 +40,19 @@ export default function ProcurementPage() {
       setPos(await db.getAllFromIndex("pos", "by_tenant", tenant.id));
     })();
   }, [tenant]);
+
+  if (!tenant) return <div className="text-sm text-gray-600 dark:text-slate-400">Loading…</div>;
+
+  if (!canAccess) {
+    return (
+      <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
+        <h2 className="text-lg font-semibold">Procurement</h2>
+        <p className="mt-2 text-sm text-gray-600 dark:text-slate-400">
+          You don’t have access to this page in the mock demo.
+        </p>
+      </div>
+    );
+  }
 
   const qtyByPart = useMemo(() => {
     const map = new Map<string, number>();
@@ -138,14 +159,14 @@ export default function ProcurementPage() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-gray-200 p-5">
+      <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-lg font-semibold">Procurement</h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
           Alerts + supplier comparison + one-click PO (all mocked, offline).
         </p>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 p-5">
+      <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
         <h3 className="font-semibold">Reorder Alerts</h3>
         <div className="mt-3 grid grid-cols-1 gap-2">
           {filteredAlerts.map(({ part, qty }) => (
@@ -153,30 +174,30 @@ export default function ProcurementPage() {
               key={part.id}
               onClick={() => setSelectedPartId(part.id)}
               className={`text-left rounded-xl border px-3 py-2 ${
-                selectedPartId === part.id ? "border-gray-900" : "border-gray-200"
+                selectedPartId === part.id ? "border-gray-900 dark:border-slate-100" : "border-gray-200 dark:border-slate-800"
               }`}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs text-gray-500">{part.sku}</div>
+                  <div className="text-xs text-gray-500 dark:text-slate-400">{part.sku}</div>
                   <div className="font-medium">{part.description}</div>
                 </div>
                 <div className="text-sm font-semibold">Qty {qty}</div>
               </div>
-              <div className="mt-1 text-xs text-gray-600">
+              <div className="mt-1 text-xs text-gray-600 dark:text-slate-400">
                 ROP {part.rop} · Safety {part.safetyStock}
               </div>
             </button>
           ))}
           {!filteredAlerts.length && (
-            <div className="text-sm text-gray-600">No alerts.</div>
+            <div className="text-sm text-gray-600 dark:text-slate-400">No alerts.</div>
           )}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 p-5">
+      <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
         <h3 className="font-semibold">Supplier Comparison</h3>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
           {selectedPart ? (
             <>For <span className="font-medium">{selectedPart.sku}</span></>
           ) : (
@@ -185,9 +206,9 @@ export default function ProcurementPage() {
         </p>
 
         {selectedPart && (
-          <div className="mt-4 overflow-auto rounded-xl border border-gray-200">
+          <div className="mt-4 overflow-auto rounded-xl border border-gray-200 dark:border-slate-800">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-slate-950">
                 <tr>
                   <th className="text-left p-2">Supplier</th>
                   <th className="text-left p-2">Price</th>
@@ -206,7 +227,7 @@ export default function ProcurementPage() {
                     <td className="p-2 text-right">
                       <button
                         onClick={() => createPO(c.supplierId)}
-                        className="rounded-lg bg-gray-900 px-3 py-1.5 text-white"
+                        className="rounded-lg bg-gray-900 px-3 py-1.5 text-white dark:bg-slate-100 dark:text-slate-900"
                       >
                         Create PO
                       </button>
@@ -214,7 +235,7 @@ export default function ProcurementPage() {
                   </tr>
                 ))}
                 {!filteredComparisons.length && (
-                  <tr><td className="p-2 text-gray-600" colSpan={5}>No suppliers for this part.</td></tr>
+                  <tr><td className="p-2 text-gray-600 dark:text-slate-400" colSpan={5}>No suppliers for this part.</td></tr>
                 )}
               </tbody>
             </table>
@@ -222,10 +243,10 @@ export default function ProcurementPage() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-gray-200 p-5">
+      <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
         <h3 className="font-semibold">Purchase Orders</h3>
-        <p className="mt-1 text-sm text-gray-600">
-          {role === "SUPPLIER" ? "Vendor view: respond to orders." : "Procurement view: sent orders."}
+        <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
+          {isSupplier ? "Vendor view: respond to orders." : "Procurement view: sent orders."}
         </p>
 
         <div className="mt-3 space-y-2">
@@ -233,25 +254,25 @@ export default function ProcurementPage() {
             const part = parts.find((p) => p.id === po.partId);
             const sup = suppliers.find((s) => s.id === po.supplierId);
             return (
-              <div key={po.id} className="rounded-xl border border-gray-200 p-3">
+              <div key={po.id} className="rounded-xl border border-gray-200 p-3 dark:border-slate-800 dark:bg-slate-950">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-xs text-gray-500">{po.id}</div>
+                    <div className="text-xs text-gray-500 dark:text-slate-400">{po.id}</div>
                     <div className="font-medium">
                       {part?.sku} · Qty {po.qty} · {sup?.name}
                     </div>
-                    <div className="mt-1 text-xs text-gray-600">Status: {po.status}</div>
+                    <div className="mt-1 text-xs text-gray-600 dark:text-slate-400">Status: {po.status}</div>
                     {po.vendorResponse && (
-                      <div className="mt-2 text-xs text-gray-700">
+                      <div className="mt-2 text-xs text-gray-700 dark:text-slate-300">
                         Response: {po.vendorResponse.unitPrice} · {po.vendorResponse.leadTimeDays} days · {po.vendorResponse.message}
                       </div>
                     )}
                   </div>
 
-                  {role === "SUPPLIER" && po.status === "SENT" && (
+                  {isSupplier && po.status === "SENT" && (
                     <button
                       onClick={() => vendorRespond(po.id)}
-                      className="rounded-lg border border-gray-200 px-3 py-1.5"
+                      className="rounded-lg border border-gray-200 px-3 py-1.5 dark:border-slate-800"
                     >
                       Respond
                     </button>
@@ -260,7 +281,7 @@ export default function ProcurementPage() {
               </div>
             );
           })}
-          {!filteredPos.length && <div className="text-sm text-gray-600">No POs yet.</div>}
+          {!filteredPos.length && <div className="text-sm text-gray-600 dark:text-slate-400">No POs yet.</div>}
         </div>
       </div>
     </div>

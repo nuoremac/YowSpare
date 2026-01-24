@@ -52,9 +52,9 @@ export default function PlannerPage() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-gray-200 p-5">
+      <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-lg font-semibold">Planner (Offline Analytics)</h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
           Local dataset analysis. Replace this with DuckDB-Wasm if you want full SQL.
         </p>
 
@@ -64,14 +64,14 @@ export default function PlannerPage() {
             type="number"
             value={minQty}
             onChange={(e) => setMinQty(Number(e.target.value))}
-            className="w-28 rounded-xl border border-gray-200 px-3 py-2 text-sm"
+            className="w-28 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950"
           />
         </div>
       </div>
 
-      <div className="overflow-auto rounded-2xl border border-gray-200">
+      <div className="overflow-auto rounded-2xl border border-gray-200 dark:border-slate-800">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-slate-950">
             <tr>
               <th className="text-left p-2">SKU</th>
               <th className="text-left p-2">Description</th>
@@ -93,7 +93,7 @@ export default function PlannerPage() {
               </tr>
             ))}
             {!report.length && (
-              <tr><td className="p-3 text-gray-600" colSpan={6}>No rows.</td></tr>
+              <tr><td className="p-3 text-gray-600 dark:text-slate-400" colSpan={6}>No rows.</td></tr>
             )}
           </tbody>
         </table>

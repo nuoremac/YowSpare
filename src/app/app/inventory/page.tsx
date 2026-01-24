@@ -45,9 +45,9 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-gray-200 p-5">
+      <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-lg font-semibold">Inventory (Offline)</h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
           Search by SKU or description. Data comes from local IndexedDB.
         </p>
 
@@ -55,7 +55,7 @@ export default function InventoryPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search… e.g. BRG-6205"
-          className="mt-4 w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:ring-2 focus:ring-gray-200"
+          className="mt-4 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-gray-200 dark:border-slate-800 dark:bg-slate-950 dark:focus:ring-slate-700"
         />
       </div>
 

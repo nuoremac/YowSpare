@@ -91,41 +91,41 @@ export default function WarehousePage() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-gray-200 p-5">
+      <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
         <h2 className="text-lg font-semibold">Warehouse</h2>
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
           Bin map + stock movements (IN). Works offline; queues movements for sync.
         </p>
       </div>
 
       <WarehouseMap bins={bins} onSelect={setSelectedBinId} />
 
-      <div className="rounded-2xl border border-gray-200 p-5">
+      <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
         <h3 className="font-semibold">Selected bin</h3>
-        <div className="mt-1 text-sm text-gray-700">
+        <div className="mt-1 text-sm text-gray-700 dark:text-slate-300">
           {selectedBin ? `${selectedBin.warehouse} / ${selectedBin.code}` : "—"}
         </div>
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="md:col-span-2 rounded-xl border border-gray-200 p-3">
+          <div className="md:col-span-2 rounded-xl border border-gray-200 p-3 dark:border-slate-800 dark:bg-slate-950">
             <div className="text-sm font-medium">Stock in bin</div>
             <div className="mt-2 space-y-2">
               {filteredStockInBin.map((s) => {
                 const part = parts.find((p) => p.id === s.partId);
                 return (
-                  <div key={`${s.partId}-${s.binId}`} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2">
+                  <div key={`${s.partId}-${s.binId}`} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-slate-800">
                     <div className="text-sm">{part?.sku} — {part?.description}</div>
                     <div className="text-sm font-medium">{s.qty}</div>
                   </div>
                 );
               })}
-              {!filteredStockInBin.length && <div className="text-sm text-gray-600">Empty.</div>}
+              {!filteredStockInBin.length && <div className="text-sm text-gray-600 dark:text-slate-400">Empty.</div>}
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-200 p-3">
+          <div className="rounded-xl border border-gray-200 p-3 dark:border-slate-800 dark:bg-slate-950">
             <div className="text-sm font-medium">Receive (mock scan)</div>
-            <p className="mt-1 text-xs text-gray-600">
+            <p className="mt-1 text-xs text-gray-600 dark:text-slate-400">
               In a real app, QR scan fills SKU + bin automatically.
             </p>
 
@@ -133,7 +133,7 @@ export default function WarehousePage() {
             <select
               value={sku}
               onChange={(e) => setSku(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-900"
             >
               {parts.map((p) => <option key={p.id} value={p.sku}>{p.sku}</option>)}
             </select>
@@ -144,12 +144,12 @@ export default function WarehousePage() {
               min={1}
               value={qtyIn}
               onChange={(e) => setQtyIn(Number(e.target.value))}
-              className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-900"
             />
 
             <button
               onClick={receive}
-              className="mt-4 w-full rounded-xl bg-gray-900 px-4 py-2 text-white"
+              className="mt-4 w-full rounded-xl bg-gray-900 px-4 py-2 text-white dark:bg-slate-100 dark:text-slate-900"
             >
               Receive (IN)
             </button>

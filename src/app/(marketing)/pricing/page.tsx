@@ -10,27 +10,27 @@ export default function PricingPage() {
     <div className="mx-auto w-full max-w-6xl pt-12">
       <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
             {t("pricing.label")}
           </p>
-          <h1 className="mt-4 text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl">
+          <h1 className="mt-4 text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl dark:text-slate-100">
             {t("pricing.title")}
           </h1>
-          <p className="mt-4 max-w-xl text-base text-slate-600">
+          <p className="mt-4 max-w-xl text-base text-slate-600 dark:text-slate-300">
             {t("pricing.body")}
           </p>
-          <div className="mt-6 flex flex-wrap gap-3 text-sm text-slate-600">
-            <span className="rounded-full border border-slate-200 bg-white px-4 py-2">
+          <div className="mt-6 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-slate-300">
+            <span className="rounded-full border border-slate-200 bg-white px-4 py-2 dark:border-slate-800 dark:bg-slate-900">
               {t("pricing.chip.billing")}
             </span>
-            <span className="rounded-full border border-slate-200 bg-white px-4 py-2">
+            <span className="rounded-full border border-slate-200 bg-white px-4 py-2 dark:border-slate-800 dark:bg-slate-900">
               {t("pricing.chip.onboarding")}
             </span>
           </div>
         </div>
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm font-semibold text-slate-800">{t("pricing.custom.title")}</p>
-          <p className="mt-3 text-sm text-slate-600">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t("pricing.custom.title")}</p>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
             {t("pricing.custom.body")}
           </p>
           <Link
@@ -75,11 +75,11 @@ export default function PricingPage() {
             ],
           },
         ].map((tier) => (
-          <div key={tier.title} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm font-semibold text-slate-800">{tier.title}</p>
-            <p className="mt-3 text-2xl font-semibold text-slate-900">{tier.price}</p>
-            <p className="mt-2 text-sm text-slate-600">{tier.desc}</p>
-            <ul className="mt-6 space-y-3 text-sm text-slate-600">
+          <div key={tier.title} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{tier.title}</p>
+            <p className="mt-3 text-2xl font-semibold text-slate-900 dark:text-slate-100">{tier.price}</p>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{tier.desc}</p>
+            <ul className="mt-6 space-y-3 text-sm text-slate-600 dark:text-slate-300">
               {tier.list.map((item) => (
                 <li key={item} className="flex items-start gap-3">
                   <span className="mt-1 h-2 w-2 rounded-full bg-[var(--brand)]" />
@@ -87,14 +87,14 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
-            <button className="mt-6 w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300">
+            <button className="mt-6 w-full rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
               {t("pricing.tier.cta")}
             </button>
           </div>
         ))}
       </section>
 
-      <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+      <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="grid gap-6 md:grid-cols-3">
           {[
             {
@@ -111,8 +111,8 @@ export default function PricingPage() {
             },
           ].map((item) => (
             <div key={item.title}>
-              <p className="text-sm font-semibold text-slate-800">{item.title}</p>
-              <p className="mt-2 text-sm text-slate-600">{item.desc}</p>
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{item.title}</p>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{item.desc}</p>
             </div>
           ))}
         </div>
