@@ -2,6 +2,18 @@ import withPWA from "@ducanh2912/next-pwa";
 
 const nextConfig = {
   reactStrictMode: true,
+  async rewrites() {
+    return [
+      {
+        source: "/api/core/:path*",
+        destination: "https://rt-comops.onrender.com/:path*",
+      },
+      {
+        source: "/api/stock/:path*",
+        destination: "https://rt-comops-stock.onrender.com/:path*",
+      },
+    ];
+  },
 };
 
 export default withPWA({

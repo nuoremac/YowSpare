@@ -8,6 +8,15 @@ export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>("light");
   const [ready, setReady] = useState(false);
 
+  function applyTheme(next: Theme) {
+    const root = document.documentElement;
+    root.classList.remove("theme-light", "theme-dark");
+    root.classList.add(`theme-${next}`);
+    root.classList.toggle("dark", next === "dark");
+    document.body.classList.toggle("dark", next === "dark");
+    root.style.colorScheme = next;
+  }
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const stored = localStorage.getItem("yowspare-theme");
@@ -24,15 +33,6 @@ export default function ThemeToggle() {
     applyTheme(theme);
     localStorage.setItem("yowspare-theme", theme);
   }, [theme, ready]);
-
-  function applyTheme(next: Theme) {
-    const root = document.documentElement;
-    root.classList.remove("theme-light", "theme-dark");
-    root.classList.add(`theme-${next}`);
-    root.classList.toggle("dark", next === "dark");
-    document.body.classList.toggle("dark", next === "dark");
-    root.style.colorScheme = next;
-  }
 
   function toggleTheme() {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));

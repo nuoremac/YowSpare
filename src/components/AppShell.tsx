@@ -1,32 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Nav from "./Nav";
-import OfflineBanner from "./OfflineBanner";
 import { useSession } from "@/store/session";
 import { usePathname, useRouter } from "next/navigation";
-import { getDB } from "@/lib/db";
 import { PageSearchProvider } from "@/components/PageSearchContext";
 import ThemeToggle from "@/components/ThemeToggle";
+import { setAuthToken, setTenantId } from "@/lib/api";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, tenant, setTenant } = useSession();
+  const { user, tenant, token } = useSession();
   const [ready, setReady] = useState(false);
   const [isAsideOpen, setIsAsideOpen] = useState(true);
-  const [pageSearch, setPageSearch] = useState("");
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const db = await getDB();
-      const t = await db.get("tenant", "current");
-      if (t) setTenant(t);
-      setReady(true);
-    })();
-  }, [setTenant]);
+    setAuthToken(token || null);
+  }, [token]);
+
+  useEffect(() => {
+    setTenantId(tenant?.id || null);
+  }, [tenant]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -38,28 +36,42 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
     if (ready && !user) router.replace("/");
   }, [ready, user, router]);
 
-  useEffect(() => {
-    setPageSearch("");
-  }, [pathname]);
+  if (!ready || !user) return null;
 
-  if (!ready) return <div className="p-6 text-sm text-gray-600">Loading…</div>;
-  if (!user) return null;
+  const PageSearchBoundary = ({
+    children,
+  }: {
+    children: (value: { pageSearch: string; setPageSearch: (next: string) => void }) => React.ReactNode;
+  }) => {
+    const [pageSearch, setPageSearch] = useState("");
+    return (
+      <PageSearchProvider value={{ query: pageSearch, setQuery: setPageSearch }}>
+        {children({ pageSearch, setPageSearch })}
+      </PageSearchProvider>
+    );
+  };
 
   const initials =
-    user.name
-      ?.split(" ")
+    [user.firstName, user.lastName]
+      .filter(Boolean)
+      .join(" ")
+      .split(" ")
       .map((part) => part[0])
       .slice(0, 2)
       .join("")
       .toUpperCase() || "YS";
 
   return (
-    <PageSearchProvider value={{ query: pageSearch, setQuery: setPageSearch }}>
-      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-        <OfflineBanner />
+    <PageSearchBoundary key={pathname}>
+      {({ pageSearch, setPageSearch }) => (
+        <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
         <div className="flex min-h-screen flex-col md:flex-row">
           <aside
             className={`fixed inset-y-0 left-0 z-40 w-64 overflow-y-auto border-r border-slate-200 bg-white px-5 py-6 transition-transform duration-200 dark:border-slate-800 dark:bg-slate-900 ${
@@ -67,16 +79,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             }`}
           >
             <div className="flex items-center gap-2 pb-5">
-            <a
+            <Link
               href="/"
               className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
               aria-label="Go to landing page"
             >
               <img src="/icons/yowspareicon.png" alt="YowSpare icon" className="h-7 w-7" />
-            </a>
-            <a href="/" className="text-sm font-semibold tracking-wide text-slate-500 dark:text-slate-400">
+            </Link>
+            <Link href="/" className="text-sm font-semibold tracking-wide text-slate-500 dark:text-slate-400">
               YowSpare
-            </a>
+            </Link>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950">
               <div className="flex items-center justify-between gap-3">
@@ -256,7 +268,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <main className="px-6 py-6">{children}</main>
           </div>
         </div>
-      </div>
-    </PageSearchProvider>
+        </div>
+      )}
+    </PageSearchBoundary>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useMemo, useState } from "react";
 import { translations, type Lang } from "./translation";
 
 type TFunc = (key: keyof typeof translations.en, vars?: Record<string, string | number>) => string;
@@ -16,19 +16,13 @@ export const LangContext = createContext<LangContextValue | null>(null);
 const STORAGE_KEY = "yowspare-lang";
 
 export function LangProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
-
-  useEffect(() => {
+  const [lang, setLangState] = useState<Lang>(() => {
+    if (typeof window === "undefined") return "en";
     const stored = window.localStorage.getItem(STORAGE_KEY) as Lang | null;
-    if (stored === "en" || stored === "fr") {
-      setLangState(stored);
-      return;
-    }
+    if (stored === "en" || stored === "fr") return stored;
     const browserLang = navigator.language.toLowerCase();
-    if (browserLang.startsWith("fr")) {
-      setLangState("fr");
-    }
-  }, []);
+    return browserLang.startsWith("fr") ? "fr" : "en";
+  });
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next);

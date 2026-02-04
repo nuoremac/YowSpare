@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap");
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
@@ -24,6 +25,12 @@
   --surface: #f5f7fb;
   --surface-strong: #eef2f7;
 }
+
+.hand-drawn {
+  font-family: "Caveat", "Manrope", sans-serif;
+  letter-spacing: 0.02em;
+}
+
 
 :root.theme-dark {
   --background: #0a0a0a;

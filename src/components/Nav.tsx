@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "@/store/session";
-import type { Role } from "@/lib/type";
 
 type NavLink = {
   href: string;
   label: string;
-  roles: Role[];
+  roles: string[];
   icon: React.ReactNode;
 };
 
@@ -16,7 +15,7 @@ const itemBase =
   "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition";
 const active = "bg-[var(--brand-soft)] text-[var(--brand)] dark:bg-slate-800";
 const inactive = "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800";
-const allRoles: Role[] = [
+const allRoles: string[] = [
   "ORG_ADMIN",
   "TENANT_ADMIN",
   "INVENTORY_MANAGER",
@@ -112,11 +111,11 @@ const links: NavLink[] = [
 
 export default function Nav() {
   const path = usePathname();
-  const { role } = useSession();
+  const { roles } = useSession();
 
-  if (!role) return null; // ✅ wait for persisted rehydrate
-
-  const visibleLinks = links.filter((l) => l.roles.includes(role));
+  const visibleLinks = roles.length
+    ? links.filter((l) => l.roles.some((r) => roles.includes(r)))
+    : links;
 
   return (
     <nav className="space-y-1">

@@ -1,54 +1,57 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getDB } from "@/lib/db";
 import { useSession } from "@/store/session";
-import type { Part, Bin, StockRow } from "@/lib/type";
 import PartCard from "@/components/PartCard";
 import { usePageSearch } from "@/components/PageSearchContext";
+import { ProductCatalogService, StockLevelsService } from "@/lib1";
+import type { Product, StockLevel } from "@/lib1";
 
 export default function InventoryPage() {
   const { tenant } = useSession();
   const { query, setQuery } = usePageSearch();
-  const [parts, setParts] = useState<Part[]>([]);
-  const [bins, setBins] = useState<Bin[]>([]);
-  const [stock, setStock] = useState<StockRow[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [levels, setLevels] = useState<StockLevel[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!tenant) return;
     (async () => {
-      const db = await getDB();
-      setParts(await db.getAllFromIndex("parts", "by_tenant", tenant.id));
-      setBins(await db.getAllFromIndex("bins", "by_tenant", tenant.id));
-      const raw = await db.getAllFromIndex("stock", "by_tenant", tenant.id);
-      setStock(raw);
+      const [p, s] = await Promise.all([
+        ProductCatalogService.getProducts(),
+        StockLevelsService.getStockLevels(),
+      ]);
+      setProducts(p || []);
+      setLevels(s || []);
+      setLoading(false);
     })();
   }, [tenant]);
 
-  const binById = useMemo(() => new Map(bins.map((b) => [b.id, b])), [bins]);
-
   const rows = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    const filtered = parts.filter((p) =>
-      !needle ? true : (p.sku.toLowerCase().includes(needle) || p.description.toLowerCase().includes(needle))
+    const filtered = products.filter((p) =>
+      !needle
+        ? true
+        : (p.sku || "").toLowerCase().includes(needle) ||
+          (p.name || "").toLowerCase().includes(needle) ||
+          (p.description || "").toLowerCase().includes(needle)
     );
 
-    // Aggregate stock across bins (and show the “best” bin label as the max qty bin)
     return filtered.map((p) => {
-      const st = stock.filter((s) => (s).partId === p.id);
-      const total = st.reduce((a, s) => a + (s).qty, 0);
-      const max = st.sort((a, b) => (b).qty - (a).qty)[0];
-      const binLabel = max ? `${binById.get((max).binId)?.warehouse} / ${binById.get((max).binId)?.code}` : "—";
-      return { part: p, totalQty: total, binLabel };
+      const st = levels.filter((s) => s.productId === p.id);
+      const total = st.reduce((a, s) => a + (s.quantity || 0), 0);
+      const max = [...st].sort((a, b) => (b.quantity || 0) - (a.quantity || 0))[0];
+      const binLabel = max?.agencyId ? `Agency ${max.agencyId}` : "—";
+      return { product: p, totalQty: total, binLabel };
     });
-  }, [parts, stock, query, binById]);
+  }, [products, levels, query]);
 
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
-        <h2 className="text-lg font-semibold">Inventory (Offline)</h2>
+        <h2 className="text-lg font-semibold">Inventory</h2>
         <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
-          Search by SKU or description. Data comes from local IndexedDB.
+          Search by SKU or description. Data comes from the live catalog and stock levels.
         </p>
 
         <input
@@ -59,11 +62,15 @@ export default function InventoryPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-3">
-        {rows.map((r) => (
-          <PartCard key={r.part.id} part={r.part} qty={r.totalQty} binLabel={r.binLabel} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-sm text-slate-500 dark:text-slate-400">Loading inventory…</div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3">
+          {rows.map((r) => (
+            <PartCard key={r.product.id} product={r.product} qty={r.totalQty} binLabel={r.binLabel} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,45 +1,51 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getDB } from "@/lib/db";
-import { useSession } from "@/store/session";
-import type { Part, StockRow } from "@/lib/type";
+import { ProductCatalogService, StockLevelsService } from "@/lib1";
+import type { Product, StockLevel } from "@/lib1";
 import { usePageSearch } from "@/components/PageSearchContext";
 
 export default function PlannerPage() {
-  const { tenant } = useSession();
-  const [parts, setParts] = useState<Part[]>([]);
-  const [stock, setStock] = useState<StockRow[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [levels, setLevels] = useState<StockLevel[]>([]);
   const [minQty, setMinQty] = useState(0);
   const { query } = usePageSearch();
 
   useEffect(() => {
-    if (!tenant) return;
     (async () => {
-      const db = await getDB();
-      setParts(await db.getAllFromIndex("parts", "by_tenant", tenant.id));
-      const raw = await db.getAllFromIndex("stock", "by_tenant", tenant.id);
-      setStock(raw );
+      const [p, s] = await Promise.all([
+        ProductCatalogService.getProducts(),
+        StockLevelsService.getStockLevels(),
+      ]);
+      setProducts(p || []);
+      setLevels(s || []);
     })();
-  }, [tenant]);
+  }, []);
 
-  const qtyByPart = useMemo(() => {
+  const qtyByProduct = useMemo(() => {
     const map = new Map<string, number>();
-    for (const s of stock ) map.set(s.partId, (map.get(s.partId) || 0) + s.qty);
+    for (const s of levels) {
+      const key = s.productId || "";
+      map.set(key, (map.get(key) || 0) + (s.quantity || 0));
+    }
     return map;
-  }, [stock]);
+  }, [levels]);
 
   const report = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return parts
-      .map((p) => ({
-        sku: p.sku,
-        description: p.description,
-        qty: qtyByPart.get(p.id) || 0,
-        rop: p.rop,
-        safety: p.safetyStock,
-        critical: (qtyByPart.get(p.id) || 0) <= p.safetyStock
-      }))
+    return products
+      .map((p) => {
+        const qty = qtyByProduct.get(p.id || "") || 0;
+        const min = p.minStockLevel ?? 0;
+        return {
+          id: p.id,
+          sku: p.sku || "—",
+          description: p.description || p.name || "—",
+          qty,
+          min,
+          critical: typeof p.minStockLevel === "number" ? qty <= p.minStockLevel : false,
+        };
+      })
       .filter((r) => r.qty >= minQty)
       .filter((r) =>
         !needle
@@ -48,14 +54,14 @@ export default function PlannerPage() {
             r.description.toLowerCase().includes(needle)
       )
       .sort((a, b) => a.qty - b.qty);
-  }, [parts, qtyByPart, minQty, query]);
+  }, [products, qtyByProduct, minQty, query]);
 
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-gray-200 p-5 dark:border-slate-800 dark:bg-slate-900">
-        <h2 className="text-lg font-semibold">Planner (Offline Analytics)</h2>
+        <h2 className="text-lg font-semibold">Planner</h2>
         <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">
-          Local dataset analysis. Replace this with DuckDB-Wasm if you want full SQL.
+          Live reorder analysis using product catalog and stock levels.
         </p>
 
         <div className="mt-4 flex items-center gap-2">
@@ -76,24 +82,22 @@ export default function PlannerPage() {
               <th className="text-left p-2">SKU</th>
               <th className="text-left p-2">Description</th>
               <th className="text-left p-2">Qty</th>
-              <th className="text-left p-2">ROP</th>
-              <th className="text-left p-2">Safety</th>
+              <th className="text-left p-2">Min</th>
               <th className="text-left p-2">Status</th>
             </tr>
           </thead>
           <tbody>
             {report.map((r) => (
-              <tr key={r.sku} className="border-t">
+              <tr key={r.id} className="border-t">
                 <td className="p-2">{r.sku}</td>
                 <td className="p-2">{r.description}</td>
                 <td className="p-2 font-medium">{r.qty}</td>
-                <td className="p-2">{r.rop}</td>
-                <td className="p-2">{r.safety}</td>
+                <td className="p-2">{r.min}</td>
                 <td className="p-2">{r.critical ? "CRITICAL" : "OK"}</td>
               </tr>
             ))}
             {!report.length && (
-              <tr><td className="p-3 text-gray-600 dark:text-slate-400" colSpan={6}>No rows.</td></tr>
+              <tr><td className="p-3 text-gray-600 dark:text-slate-400" colSpan={5}>No rows.</td></tr>
             )}
           </tbody>
         </table>

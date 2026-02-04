@@ -1,16 +1,19 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Role, Tenant, User } from "@/lib/type";
+import type { Organization, User } from "@/lib";
+import { setAuthToken } from "@/lib/api";
 
 type SessionState = {
-  tenant: Tenant | null;
+  tenant: Organization | null;
   user: User | null;
-  role: Role | null;
+  roles: string[];
   activeAgencyId: string | null;
-  setTenant: (t: Tenant | null) => void;
+  token: string | null;
+  setTenant: (t: Organization | null) => void;
   setUser: (u: User | null) => void;
-  setRole: (r: Role | null) => void;
+  setRoles: (roles: string[]) => void;
   setActiveAgencyId: (id: string | null) => void;
+  setToken: (token: string | null) => void;
   logout: () => void;
 };
 
@@ -19,17 +22,31 @@ export const useSession = create<SessionState>()(
     (set) => ({
       tenant: null,
       user: null,
-      role: null,
+      roles: [],
       activeAgencyId: null,
+      token: null,
       setTenant: (tenant) => set({ tenant }),
       setUser: (user) => set({ user }),
-      setRole: (role) => set({ role }),
+      setRoles: (roles) => set({ roles }),
       setActiveAgencyId: (activeAgencyId) => set({ activeAgencyId }),
-      logout: () => set({ tenant: null, user: null, role: null, activeAgencyId: null }),
+      setToken: (token) => {
+        setAuthToken(token);
+        set({ token });
+      },
+      logout: () => {
+        setAuthToken(null);
+        set({ tenant: null, user: null, roles: [], activeAgencyId: null, token: null });
+      },
     }),
     {
       name: "yowspare-session",
-      partialize: (s) => ({ tenant: s.tenant, user: s.user, role: s.role, activeAgencyId: s.activeAgencyId }),
+      partialize: (s) => ({
+        tenant: s.tenant,
+        user: s.user,
+        roles: s.roles,
+        activeAgencyId: s.activeAgencyId,
+        token: s.token,
+      }),
     }
   )
 );
