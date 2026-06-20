@@ -1,236 +1,229 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import MarketingShell from "@/components/MarketingShell";
 import { useT } from "@/components/i18n/useT";
-import ThemeToggle from "@/components/ThemeToggle";
+import { withAppBasePath } from "@/lib/basePath";
+
+const pageCopy = {
+  en: {
+    hero: {
+      title: "Keep critical spare parts available before downtime starts.",
+      body:
+        "YowSpare connects inventory, warehouse locations, internal requests, suppliers, RFQs, purchase orders, and approvals in one offline-first workspace built for industrial teams.",
+      primary: "Start free",
+      secondary: "Book a demo",
+      proof: "Built for warehouses, workshops, plants, depots, and field maintenance teams.",
+    },
+    stats: [
+      ["30%", "less emergency purchasing"],
+      ["99.9%", "traceable stock decisions"],
+      ["Offline", "work continues without network"],
+      ["Multi-site", "one view across agencies"],
+    ],
+    modulesTitle: "One operating system for the spare-parts lifecycle.",
+    modulesBody:
+      "Replace scattered spreadsheets and disconnected requests with workflows that match how maintenance and procurement teams actually work.",
+    modules: [
+      ["Inventory control", "Track stock levels, reorder points, categories, and product locations."],
+      ["Warehouse map", "Locate each part by agency, bin, shelf, and warehouse zone."],
+      ["Procurement", "Create RFQs, compare suppliers, and convert accepted quotations into POs."],
+      ["Internal requests", "Let departments request parts with approval and consumption history."],
+      ["Work orders", "Prepare spare parts for maintenance jobs and record real consumption."],
+      ["Approvals", "Protect write actions with roles, permissions, and audit trails."],
+      ["Supplier directory", "Maintain supplier contacts, lead times, MOQs, and preferred parts."],
+      ["Traceability", "Follow every purchase, receipt, movement, adjustment, and exception."],
+    ],
+    benefits: {
+      title: "Designed for the reality of industrial operations.",
+      body:
+        "Connectivity drops, warehouses are busy, and parts move fast. YowSpare keeps the process usable in those conditions.",
+      items: [
+        ["Offline-first execution", "Users keep working in low-connectivity warehouses, then synchronize when the network returns."],
+        ["Permission-aware workflows", "Pages stay visible for everyone, but read/write actions follow each role's permissions."],
+        ["Financial-ready procurement", "Quotations and purchase orders include VAT, AIR, IR, supplier references, and print-ready documents."],
+      ],
+    },
+    final: {
+      title: "Ready to make spare-parts operations easier to control?",
+      body: "Create a workspace or talk to us about your warehouse and approval structure.",
+      primary: "Create workspace",
+      secondary: "Contact sales",
+    },
+  },
+  fr: {
+    hero: {
+      title: "Gardez les pieces critiques disponibles avant que l'arret machine commence.",
+      body:
+        "YowSpare relie inventaire, emplacements warehouse, demandes internes, fournisseurs, cotations, bons de commande et approbations dans un espace offline-first pense pour l'industrie.",
+      primary: "Demarrer",
+      secondary: "Reserver une demo",
+      proof: "Concu pour entrepots, ateliers, usines, depots et equipes terrain.",
+    },
+    stats: [
+      ["30%", "moins d'achats urgents"],
+      ["99,9%", "decisions stock tracables"],
+      ["Hors ligne", "le travail continue sans reseau"],
+      ["Multi-site", "une vue sur toutes les agences"],
+    ],
+    modulesTitle: "Un systeme d'exploitation pour le cycle de vie des pieces.",
+    modulesBody:
+      "Remplacez les tableurs et demandes dispersees par des workflows adaptes aux equipes maintenance et achats.",
+    modules: [
+      ["Controle inventaire", "Suivez niveaux de stock, seuils, categories et emplacements produit."],
+      ["Carte warehouse", "Localisez chaque piece par agence, bin, et zone d'entrepot."],
+      ["Approvisionnement", "Creez les cotations, comparez les fournisseurs et convertissez en bons de commande."],
+      ["Demandes internes", "Les departements demandent les pieces avec validation et historique."],
+      ["Ordres de maintenance", "Preparez les pieces pour les interventions et enregistrez la consommation."],
+      ["Approbations", "Protegez les actions d'ecriture avec roles, permissions et audits."],
+      ["Fournisseurs", "Gardez contacts, delais, MOQ et pieces preferees par fournisseur."],
+      ["Tracabilite", "Suivez achats, receptions, mouvements, ajustements et exceptions."],
+    ],
+    benefits: {
+      title: "Concu pour la realite des operations industrielles.",
+      body:
+        "Le reseau tombe, les entrepots bougent vite, les pieces sortent en urgence. YowSpare reste utilisable dans ces conditions.",
+      items: [
+        ["Execution offline-first", "Les utilisateurs travaillent en zone de faible reseau puis synchronisent automatiquement."],
+        ["Workflows par permission", "Les pages restent visibles, mais les actions lecture/ecriture suivent le role de chacun."],
+        ["Achats prets finance", "Cotations et POs incluent TVA, AIR, IR, references fournisseur et documents imprimables."],
+      ],
+    },
+    final: {
+      title: "Pret a mieux controler vos operations spare ?",
+      body: "Creez un espace de travail ou parlons de vos entrepots et circuits d'approbation.",
+      primary: "Creer un workspace",
+      secondary: "Contacter les ventes",
+    },
+  },
+} as const;
+
+const Icon = ({ index }: { index: number }) => {
+  const paths = [
+    <path key="0" d="M4 7h7v7H4zM13 4h7v6h-7zM13 12h7v8h-7zM4 16h7v4H4z" strokeLinecap="round" />,
+    <path key="1" d="M4 20V5h16v15M8 9h2M8 13h2M14 9h2M14 13h2M7 20v-4h10v4" strokeLinecap="round" />,
+    <path key="2" d="M7 7h11l-3-3M17 17H6l3 3" strokeLinecap="round" strokeLinejoin="round" />,
+    <path key="3" d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h3" strokeLinecap="round" />,
+    <path key="4" d="M4 20h16M7 17V7h10v10M9 10h6M9 14h6" strokeLinecap="round" />,
+    <path key="5" d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7l7-4zM9.5 12.5l1.8 1.8 3.2-3.2" strokeLinecap="round" />,
+    <path key="6" d="M5 8h14M7 8v11h10V8M9 5h6l1 3H8l1-3z" strokeLinecap="round" />,
+    <path key="7" d="M4 20V4h16M7 16l4-4 3 2 4-6" strokeLinecap="round" />,
+  ];
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7">
+      {paths[index % paths.length]}
+    </svg>
+  );
+};
 
 export default function AuthClient() {
-  const { t, lang, setLang } = useT();
-  const modules = [
-    { label: t("landing.module.inventory"), icon: "boxes", color: "from-amber-400/30 via-amber-100 to-white text-amber-600" },
-    { label: t("landing.module.stockLevels"), icon: "levels", color: "from-emerald-400/30 via-emerald-100 to-white text-emerald-600" },
-    { label: t("landing.module.movements"), icon: "swap", color: "from-sky-400/30 via-sky-100 to-white text-sky-600" },
-    { label: t("landing.module.catalog"), icon: "tag", color: "from-violet-400/30 via-violet-100 to-white text-violet-600" },
-    { label: t("landing.module.agencies"), icon: "building", color: "from-rose-400/30 via-rose-100 to-white text-rose-600" },
-    { label: t("landing.module.users"), icon: "users", color: "from-teal-400/30 via-teal-100 to-white text-teal-600" },
-    { label: t("landing.module.audits"), icon: "shield", color: "from-indigo-400/30 via-indigo-100 to-white text-indigo-600" },
-    { label: t("landing.module.files"), icon: "file", color: "from-orange-400/30 via-orange-100 to-white text-orange-600" },
-    { label: t("landing.module.settings"), icon: "settings", color: "from-fuchsia-400/30 via-fuchsia-100 to-white text-fuchsia-600" },
-    { label: t("landing.module.reports"), icon: "chart", color: "from-lime-400/30 via-lime-100 to-white text-lime-600" },
-    { label: t("landing.module.planning"), icon: "calendar", color: "from-cyan-400/30 via-cyan-100 to-white text-cyan-600" },
-    { label: t("landing.module.automation"), icon: "bolt", color: "from-yellow-400/30 via-yellow-100 to-white text-yellow-600" },
-  ];
+  const { lang } = useT();
+  const c = pageCopy[lang];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100 text-slate-900 flex flex-col dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 dark:text-slate-100">
-      <header className="border-b border-blue-100 bg-[var(--brand)] px-6 py-5 text-white shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center overflow-hidden rounded-2xl border border-blue-500 bg-white/10 dark:border-slate-700 dark:bg-slate-900">
-              <img src="/icons/yowspareicon.png" alt="YowSpare icon" className="h-8 w-8" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold tracking-wide">YowSpare</p>
-              <p className="text-xs text-blue-100 dark:text-slate-400">{t("header.subtitle")}</p>
-            </div>
-          </div>
-          <div className="hidden items-center gap-6 text-sm text-blue-100 md:flex dark:text-slate-300">
-            <Link href="/about" className="hover:text-white dark:hover:text-slate-100">{t("nav.about")}</Link>
-            <Link href="/pricing" className="hover:text-white dark:hover:text-slate-100">{t("nav.pricing")}</Link>
-            <Link href="/help" className="hover:text-white dark:hover:text-slate-100">{t("nav.help")}</Link>
-          </div>
-          <div className="flex items-center gap-3">
-            <select
-              className="hidden rounded-full border border-blue-400 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white md:block dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              value={lang}
-              onChange={(event) => setLang(event.target.value as "en" | "fr")}
-              aria-label="Language"
-            >
-              <option value="en">🇬🇧 {t("language.english")}</option>
-              <option value="fr">🇫🇷 {t("language.french")}</option>
-            </select>
-            <ThemeToggle />
-            <Link
-              href="/signin"
-              className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-            >
-              {t("nav.signIn")}
+    <MarketingShell>
+      <section className="mx-auto grid w-full max-w-6xl gap-12 px-6 pb-16 pt-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:pb-20 lg:pt-20">
+        <div>
+          <h1 className="max-w-3xl text-4xl font-extrabold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl dark:text-white">
+            {c.hero.title}
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg dark:text-slate-300">
+            {c.hero.body}
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link href="/register" className="inline-flex h-12 items-center justify-center rounded-xl bg-blue-600 px-6 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700">
+              {c.hero.primary}
+            </Link>
+            <Link href="/contact" className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800">
+              {c.hero.secondary}
             </Link>
           </div>
+          <p className="mt-5 text-sm text-slate-500 dark:text-slate-400">{c.hero.proof}</p>
         </div>
-      </header>
 
-      <main className="flex-1 px-6 pb-16">
-        <section className="mx-auto w-full max-w-6xl pt-12">
-          <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
-            <div>
-              <div className="max-w-xl">
-                <h1 className="text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl dark:text-slate-100">
-                  {t("landing.hero.title")}
-                </h1>
-                <p className="mt-4 text-base text-slate-600 dark:text-slate-300">
-                  {t("landing.hero.body")}
-                </p>
-              </div>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-0 shadow-sm overflow-hidden dark:border-slate-800 dark:bg-slate-900">
-              <img
-                src="/icons/spare1.png"
-                alt="Spare parts illustration"
-                className="hero-float h-full w-full object-cover"
-              />
+        <div className="relative">
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+            <Image
+              src={withAppBasePath("/icons/yowspare_3d_hero.png")}
+              alt="YowSpare warehouse, inventory, and procurement workspace"
+              width={1200}
+              height={900}
+              priority
+              className="aspect-[4/3] w-full object-cover"
+            />
+          </div>
+          <div className="absolute bottom-4 left-4 right-4 rounded-xl border border-white/30 bg-white/90 p-4 shadow-lg backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {c.stats.map(([value, label]) => (
+                <div key={label}>
+                  <div className="text-lg font-extrabold text-slate-950 dark:text-white">{value}</div>
+                  <div className="mt-1 text-[11px] leading-4 text-slate-500 dark:text-slate-400">{label}</div>
+                </div>
+              ))}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto mt-12 w-full max-w-6xl">
-          <div className="text-center">
-            <h2 className="hand-drawn text-2xl font-semibold text-slate-900 dark:text-slate-100">
-              {t("landing.modules.title")}
-            </h2>
-            <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-[var(--brand)]/80" />
+      <section id="features" className="border-y border-slate-200 bg-slate-50 py-20 dark:border-slate-800 dark:bg-slate-900/30">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl dark:text-white">{c.modulesTitle}</h2>
+            <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">{c.modulesBody}</p>
           </div>
-          <div className="mt-6 grid grid-cols-4 justify-items-center gap-2">
-            {modules.map((item) => (
-              <div
-                key={item.label}
-                className="flex h-24 w-24 flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white p-2 text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
-              >
-                <div
-                  className={`grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br ${item.color} shadow-sm dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100`}
-                >
-                  {item.icon === "boxes" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M4 7h7v7H4zM13 4h7v6h-7zM13 12h7v8h-7zM4 16h7v4H4z" strokeLinecap="round" />
-                    </svg>
-                  )}
-                  {item.icon === "levels" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M4 20h16M7 16h3v4H7zM11 12h3v8h-3zM15 8h3v12h-3z" strokeLinecap="round" />
-                    </svg>
-                  )}
-                  {item.icon === "swap" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M7 7h11l-3-3M17 17H6l3 3" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                  {item.icon === "tag" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M7 7h7l5 5-7 7-5-5V7z" strokeLinecap="round" strokeLinejoin="round" />
-                      <circle cx="10" cy="10" r="1.5" />
-                    </svg>
-                  )}
-                  {item.icon === "building" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M4 20V4h8v16M12 8h8v12" strokeLinecap="round" />
-                      <path d="M7 8h2M7 12h2M7 16h2M15 12h2M15 16h2" strokeLinecap="round" />
-                    </svg>
-                  )}
-                  {item.icon === "users" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zM16 13a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" strokeLinecap="round" />
-                      <path d="M3.5 20v-1.5a4.5 4.5 0 0 1 9 0V20M13.5 20v-1a3.5 3.5 0 0 1 7 0V20" strokeLinecap="round" />
-                    </svg>
-                  )}
-                  {item.icon === "shield" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M12 3l7 4v5c0 4-3 7-7 9-4-2-7-5-7-9V7l7-4z" strokeLinecap="round" />
-                      <path d="m9.5 12.5 1.8 1.8 3.2-3.2" strokeLinecap="round" />
-                    </svg>
-                  )}
-                  {item.icon === "file" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M6 4h9l3 3v13H6z" strokeLinecap="round" />
-                      <path d="M9 4v6h6" strokeLinecap="round" />
-                      <path d="M9 16h6" strokeLinecap="round" />
-                    </svg>
-                  )}
-                  {item.icon === "settings" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M12 8.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7z" strokeLinecap="round" />
-                      <path d="M4 12h2m12 0h2M12 4v2m0 12v2M6.3 6.3l1.4 1.4m8.6 8.6 1.4 1.4M6.3 17.7l1.4-1.4m8.6-8.6 1.4-1.4" strokeLinecap="round" />
-                    </svg>
-                  )}
-                  {item.icon === "chart" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M4 20V4h16" strokeLinecap="round" />
-                      <path d="M7 16l4-4 3 2 4-6" strokeLinecap="round" />
-                    </svg>
-                  )}
-                  {item.icon === "calendar" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M6 4v3M18 4v3M4 9h16M5 20h14a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1z" strokeLinecap="round" />
-                      <path d="M8 13h4" strokeLinecap="round" />
-                    </svg>
-                  )}
-                  {item.icon === "bolt" && (
-                    <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.6">
-                      <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {c.modules.map(([title, body], index) => (
+              <div key={title} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 dark:border-slate-800 dark:bg-slate-950">
+                <div className="grid h-10 w-10 place-items-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300">
+                  <Icon index={index} />
                 </div>
-                <div className="text-[11px] font-semibold leading-tight text-slate-900 dark:text-slate-100">
-                  {item.label}
-                </div>
+                <h3 className="mt-4 text-sm font-bold text-slate-950 dark:text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{body}</p>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto mt-10 w-full max-w-6xl">
-          <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white px-6 py-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-2xl font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                  {t("landing.demo.title")}
-                </p>
-                <h3 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-slate-100">
-                  {t("landing.demo.subtitle")}
-                </h3>
+      <section id="benefits" className="mx-auto grid max-w-6xl gap-12 px-6 py-20 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <Image
+            src={withAppBasePath("/icons/spare1.png")}
+            alt="Spare parts warehouse operations"
+            width={1200}
+            height={900}
+            className="aspect-[4/3] w-full object-cover"
+          />
+        </div>
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl dark:text-white">{c.benefits.title}</h2>
+          <p className="mt-4 text-base leading-7 text-slate-600 dark:text-slate-300">{c.benefits.body}</p>
+          <div className="mt-8 space-y-4">
+            {c.benefits.items.map(([title, body]) => (
+              <div key={title} className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <h3 className="text-sm font-bold text-slate-950 dark:text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">{body}</p>
               </div>
-              <div className="relative flex items-center gap-4">
-                <div className="relative">
-                  <svg
-                    className="absolute -top-9 left-1/2 h-8 w-8 -translate-x-1/2 text-blue-500 animate-bounce"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.4"
-                  >
-                    <path d="M12 4v14" strokeLinecap="round" />
-                    <path d="M8 14l4 4 4-4" strokeLinecap="round" />
-                  </svg>
-                  <Link
-                    href="/signin"
-                    className="rounded-full bg-[var(--brand)] px-5 py-2 text-sm font-semibold text-white hover:bg-[var(--brand-strong)]"
-                  >
-                    {t("landing.demo.button")}
-                  </Link>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
-      <footer className="mt-auto w-full bg-[var(--brand)] px-6 py-8 text-sm text-white dark:bg-slate-950 dark:text-slate-100">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm font-semibold">YowSpare</p>
-            <p className="mt-1 text-xs text-blue-100 dark:text-slate-400">{t("footer.tagline")}</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-4 text-xs text-blue-100 dark:text-slate-400">
-            <Link href="/security" className="hover:text-white dark:hover:text-slate-100">{t("footer.security")}</Link>
-            <Link href="/contact" className="hover:text-white dark:hover:text-slate-100">{t("footer.contact")}</Link>
-            <span className="text-blue-100/70 dark:text-slate-500">•</span>
-            <span>{t("footer.register.prompt")}</span>
-            <Link href="/register" className="font-semibold text-white hover:opacity-90 dark:text-slate-100">
-              {t("footer.register.link")}
+      <section className="px-6 py-20">
+        <div className="mx-auto max-w-4xl rounded-2xl bg-blue-600 px-6 py-12 text-center text-white shadow-sm">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{c.final.title}</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-blue-100">{c.final.body}</p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link href="/register" className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-bold text-blue-700 transition hover:bg-blue-50">
+              {c.final.primary}
+            </Link>
+            <Link href="/contact" className="inline-flex h-12 items-center justify-center rounded-xl border border-white/30 px-6 text-sm font-bold text-white transition hover:bg-white/10">
+              {c.final.secondary}
             </Link>
           </div>
-          <div className="text-xs text-blue-100 dark:text-slate-400">{t("footer.copyright")}</div>
         </div>
-      </footer>
-    </div>
+      </section>
+    </MarketingShell>
   );
 }

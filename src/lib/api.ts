@@ -1,24 +1,72 @@
-import { OpenAPI as CoreOpenAPI } from "@/lib/core/OpenAPI";
-import { OpenAPI as StockOpenAPI } from "@/lib1/core/OpenAPI";
+import { OpenAPI as CoreOpenAPI } from "@/lib-core/core/OpenAPI";
+import { OpenAPI as SpareOpenAPI } from "@/lib-spare/core/OpenAPI";
+import { OpenAPI as StockOpenAPI } from "@/lib-stock/core/OpenAPI";
+import { OpenAPI as TiersOpenAPI } from "@/lib-tiers/core/OpenAPI";
+import { OpenAPI as BillingOpenAPI } from "@/yowyob-billing/core/OpenAPI";
 
-const coreBase = process.env.NEXT_PUBLIC_CORE_API_BASE?.trim();
-const stockBase = process.env.NEXT_PUBLIC_STOCK_API_BASE?.trim();
+type OpenApiLike = {
+  TOKEN?: unknown;
+  HEADERS?: unknown;
+};
 
-if (coreBase) {
-  CoreOpenAPI.BASE = coreBase;
-}
+const clients: OpenApiLike[] = [
+  CoreOpenAPI,
+  StockOpenAPI,
+  SpareOpenAPI,
+  TiersOpenAPI,
+  BillingOpenAPI,
+];
 
-if (stockBase) {
-  StockOpenAPI.BASE = stockBase;
-}
+let authToken: string | null = null;
+let tenantId: string | null = null;
+let organizationId: string | null = null;
+let agencyId: string | null = null;
 
-export function setAuthToken(token: string | null) {
-  CoreOpenAPI.TOKEN = token || undefined;
-  StockOpenAPI.TOKEN = token || undefined;
-}
+const applyAuth = () => {
+  const token = authToken || undefined;
+  const headers: Record<string, string> = {};
+  if (tenantId) headers["X-Tenant-Id"] = tenantId;
+  if (organizationId) headers["X-Organization-Id"] = organizationId;
+  if (agencyId) headers["X-Agency-Id"] = agencyId;
+  clients.forEach((client) => {
+    client.TOKEN = token;
+    client.HEADERS = Object.keys(headers).length ? headers : undefined;
+  });
+};
 
-export function setTenantId(tenantId: string | null) {
-  const header = tenantId ? { "X-Tenant-ID": tenantId } : undefined;
-  CoreOpenAPI.HEADERS = header;
-  StockOpenAPI.HEADERS = header;
-}
+export const setAuthToken = (token: string | null) => {
+  authToken = token;
+  applyAuth();
+};
+
+export const getAuthToken = () => authToken;
+
+export const setTenantId = (id: string | null) => {
+  tenantId = id;
+  applyAuth();
+};
+
+export const getTenantId = () => tenantId;
+
+export const setOrganizationId = (id: string | null) => {
+  organizationId = id;
+  applyAuth();
+};
+
+export const getOrganizationId = () => organizationId;
+
+export const setAgencyId = (id: string | null) => {
+  agencyId = id;
+  applyAuth();
+};
+
+export const getAgencyId = () => agencyId;
+
+export const getDefaultHeaders = (): Record<string, string> => {
+  const headers: Record<string, string> = {};
+  if (authToken) headers.Authorization = `Bearer ${authToken}`;
+  if (tenantId) headers["X-Tenant-Id"] = tenantId;
+  if (organizationId) headers["X-Organization-Id"] = organizationId;
+  if (agencyId) headers["X-Agency-Id"] = agencyId;
+  return headers;
+};

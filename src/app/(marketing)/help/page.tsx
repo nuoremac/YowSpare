@@ -9,10 +9,7 @@ export default function HelpPage() {
     <div className="mx-auto w-full max-w-6xl pt-12">
       <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-            {t("help.label")}
-          </p>
-          <h1 className="mt-4 text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl dark:text-slate-100">
+          <h1 className="text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl dark:text-slate-100">
             {t("help.title")}
           </h1>
           <p className="mt-4 max-w-xl text-base text-slate-600 dark:text-slate-300">

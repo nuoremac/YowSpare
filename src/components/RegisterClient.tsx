@@ -10,9 +10,11 @@ import {
   OrganizationsService,
   UsersService,
 } from "@/lib";
+import type { User } from "@/lib";
 import { useSession } from "@/store/session";
 import { useT } from "@/components/i18n/useT";
-import { setTenantId } from "@/lib/api";
+import { setOrganizationId, setTenantId } from "@/lib/api";
+import { withAppBasePath } from "@/lib/basePath";
 
 export default function RegisterClient() {
   const router = useRouter();
@@ -77,44 +79,31 @@ export default function RegisterClient() {
 
   async function handleRegister() {
     setError("");
-    if (!validateStep(1)) return;
+    if (!validateStep(2) || !validateStep(1)) return;
 
     setLoading(true);
     try {
       const pwd = password.trim();
-      await AuthenticationService.register({
+      // register is now idempotent and returns a token directly (same shape as login)
+      const regResponse = await AuthenticationService.register({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim().toLowerCase(),
         company: company.trim(),
         password: pwd,
-      });
-      setStep(2);
-    } catch (err: unknown) {
-      setError(getErrorMessage(err) || t("auth.register.error.failed"));
-    } finally {
-      setLoading(false);
-    }
-  }
+      }) as unknown as {
+        token?: string;
+        user?: User;
+      };
 
-  async function handleCompleteSetup() {
-    setError("");
-    if (!validateStep(2)) return;
-
-    setLoading(true);
-    try {
-      const pwd = password.trim();
-      const login = await AuthenticationService.login({
-        email: email.trim().toLowerCase(),
-        password: pwd,
-      });
-      if (!login?.token) {
+      if (!regResponse?.token) {
         setError(t("auth.register.error.failed"));
         return;
       }
-      setToken(login.token);
+      setToken(regResponse.token);
+      setTenantId(regResponse.user?.tenantId || null);
 
-      await BusinessActorsService.onboardUser({
+      const businessActor = await BusinessActorsService.onboardUser({
         name: `${firstName.trim()} ${lastName.trim()}`.trim(),
         businessAddress: hqLocation.trim(),
         businessProfile: company.trim(),
@@ -123,21 +112,38 @@ export default function RegisterClient() {
       await UsersService.updateMyPlan({ plan: "FREELANCE" });
 
       const organization = await OrganizationsService.createOrganization({
+        businessActorId: businessActor.id,
         name: company.trim(),
         email: email.trim().toLowerCase(),
         description: `${company.trim()} HQ`,
       });
 
-      setTenantId(organization?.id || null);
+      setOrganizationId(organization?.id || null);
 
-      const agency = await AgenciesService.createAgency({
-        name: t("auth.register.hqName"),
-        type: "HQ",
-        address: hqLocation.trim(),
-        headquarter: true,
-      });
+      let authenticatedUser = regResponse.user;
+      try {
+        const refreshedSession = await AuthenticationService.login({
+          email: email.trim().toLowerCase(),
+          password: pwd,
+        });
+        if (refreshedSession?.token) {
+          setToken(refreshedSession.token);
+          authenticatedUser = refreshedSession.user || authenticatedUser;
+          setTenantId(authenticatedUser?.tenantId || null);
+        }
+      } catch {
+        // The owner check still grants the correct UI access if session refresh is temporarily unavailable.
+      }
 
-      const me = login.user || (await UsersService.getMe());
+      const agencies = await AgenciesService.getAgencies();
+      const agency = agencies?.[0];
+
+      const baseUser = authenticatedUser || (await UsersService.getMe());
+      const me = {
+        ...baseUser,
+        firstName: baseUser.firstName || firstName.trim(),
+        lastName: baseUser.lastName || lastName.trim(),
+      };
 
       startTransition(() => {
         setTenant(organization || null);
@@ -185,13 +191,20 @@ export default function RegisterClient() {
           </div>
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-center gap-2 text-center">
-              <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-                <img src="/icons/yowspareicon.png" alt="YowSpare icon" className="h-6 w-6" />
+              <div className="h-9 w-9 overflow-hidden rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50">
+                <img src={withAppBasePath("/icons/yowspareicon.png")} alt="YowSpare icon" className="h-full w-full object-cover" />
               </div>
             <div className="text-sm font-semibold tracking-wide text-slate-900 dark:text-slate-100">
               YowSpare
             </div>
           </div>
+          <div className="mt-4 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
+            <span>{step === 1 ? t("auth.register.step1") : t("auth.register.step2")}</span>
+            <span className="text-slate-400 dark:text-slate-500">{t("auth.register.stepTotal")}</span>
+          </div>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            {step === 1 ? t("auth.register.step1.help") : t("auth.register.step2.help")}
+          </p>
 
           {step === 1 ? (
             <>
@@ -339,17 +352,18 @@ export default function RegisterClient() {
             {step === 1 ? (
               <button
                 type="button"
-                onClick={handleRegister}
-                disabled={loading}
+                onClick={() => {
+                  if (validateStep(1)) setStep(2);
+                }}
                 className="w-full rounded-xl bg-black px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 dark:bg-white dark:text-black"
               >
-                {loading ? t("auth.register.loading") : t("auth.register.signup")}
+                {t("auth.register.next")}
               </button>
             ) : (
               <button
                 type="button"
                 disabled={loading}
-                onClick={handleCompleteSetup}
+                onClick={handleRegister}
                 className="w-2/3 rounded-xl bg-black px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-black"
               >
                 {loading ? t("auth.register.loading") : t("auth.register.button")}

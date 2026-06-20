@@ -3,9 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AgenciesService, AuthenticationService, OrganizationsService, UsersService } from "@/lib";
+import {
+  AgenciesService,
+  AuthenticationService,
+  BusinessActorsService,
+  OrganizationsService,
+  UsersService,
+} from "@/lib";
+import type { Organization } from "@/lib";
 import { useSession } from "@/store/session";
 import { useT } from "@/components/i18n/useT";
+import { setOrganizationId, setTenantId } from "@/lib/api";
+import { withAppBasePath } from "@/lib/basePath";
+import { splitPersonName } from "@/lib/personName";
 
 export default function SignInClient() {
   const router = useRouter();
@@ -48,15 +58,76 @@ export default function SignInClient() {
       }
       setToken(res.token);
 
-      const me = res.user || (await UsersService.getMe());
+      const baseUser = res.user || (await UsersService.getMe());
+      setTenantId(baseUser.tenantId || null);
+      let me = baseUser;
+
+      if (!baseUser.firstName) {
+        try {
+          const actor = await BusinessActorsService.getMyProfile();
+          const personName = splitPersonName(actor?.name);
+          if (personName.firstName) {
+            me = {
+              ...baseUser,
+              ...personName,
+            };
+          }
+        } catch {
+          // Some employee accounts do not have a personal Business Actor profile.
+        }
+      }
+
       setUser(me);
       setRoles(me?.roles || []);
 
-      const orgs = await OrganizationsService.getMyOrganizations();
-      setTenant(orgs?.[0] || null);
+      // For employees, `/organizations/my` can be empty/forbidden because it returns only organizations you OWN.
+      // Prefer the organizationId attached to the user profile, and fetch the organization details from there.
+      let orgId = me?.organizationId || null;
+      let org: Organization | null = null;
+
+      if (orgId) {
+        setOrganizationId(orgId);
+        try {
+          org = await OrganizationsService.getOrganizationById(orgId);
+        } catch {
+          org = { id: orgId };
+        }
+      } else {
+        // Owner/admin fallback (legacy behavior).
+        const orgs = await OrganizationsService.getMyOrganizations();
+        org = orgs?.[0] || null;
+        orgId = org?.id || null;
+        setOrganizationId(orgId);
+      }
+
+      if (!orgId) {
+        setAuthError(t("auth.error.noOrganization"));
+        setTenant(null);
+        setActiveAgencyId(null);
+        setRoles([]);
+        setUser(null);
+        setToken(null);
+        setTenantId(null);
+        setOrganizationId(null);
+        return;
+      }
+
+      setTenant(org);
 
       const agencies = await AgenciesService.getAgencies();
-      setActiveAgencyId(agencies?.[0]?.id || null);
+      const primaryAgencyId = agencies?.[0]?.id || null;
+      if (!primaryAgencyId) {
+        setAuthError(t("auth.error.noAgency"));
+        setTenant(null);
+        setActiveAgencyId(null);
+        setRoles([]);
+        setUser(null);
+        setToken(null);
+        setTenantId(null);
+        setOrganizationId(null);
+        return;
+      }
+      setActiveAgencyId(primaryAgencyId);
 
       router.push("/app");
     } catch (err: unknown) {
@@ -97,8 +168,8 @@ export default function SignInClient() {
           </div>
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-center gap-2 text-center">
-              <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-                <img src="/icons/yowspareicon.png" alt="YowSpare icon" className="h-6 w-6" />
+              <div className="h-9 w-9 overflow-hidden rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50">
+                <img src={withAppBasePath("/icons/yowspareicon.png")} alt="YowSpare icon" className="h-full w-full object-cover" />
               </div>
               <div className="text-sm font-semibold tracking-wide text-slate-900 dark:text-slate-100">
                 YowSpare

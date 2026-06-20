@@ -1,41 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-type Theme = "light" | "dark";
+import { THEME_CHANGE_EVENT, initTheme, readThemeFromDom, setTheme, type Theme } from "@/lib/theme";
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("light");
-  const [ready, setReady] = useState(false);
-
-  function applyTheme(next: Theme) {
-    const root = document.documentElement;
-    root.classList.remove("theme-light", "theme-dark");
-    root.classList.add(`theme-${next}`);
-    root.classList.toggle("dark", next === "dark");
-    document.body.classList.toggle("dark", next === "dark");
-    root.style.colorScheme = next;
-  }
+  const [theme, setThemeState] = useState<Theme>("light");
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = localStorage.getItem("yowspare-theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const nextTheme: Theme =
-      stored === "light" || stored === "dark" ? stored : prefersDark ? "dark" : "light";
-    setTheme(nextTheme);
-    applyTheme(nextTheme);
-    setReady(true);
+    const sync = () => setThemeState(readThemeFromDom());
+    setThemeState(initTheme());
+    window.addEventListener(THEME_CHANGE_EVENT, sync);
+    return () => window.removeEventListener(THEME_CHANGE_EVENT, sync);
   }, []);
 
-  useEffect(() => {
-    if (!ready) return;
-    applyTheme(theme);
-    localStorage.setItem("yowspare-theme", theme);
-  }, [theme, ready]);
-
   function toggleTheme() {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    setThemeState(next);
   }
 
   return (

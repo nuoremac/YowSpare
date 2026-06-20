@@ -10,17 +10,23 @@
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
+    "@duckdb/duckdb-wasm": "^1.33.1-dev45.0",
+    "chart.js": "^4.5.1",
     "idb": "^8.0.3",
     "next": "16.1.0",
     "react": "19.2.3",
+    "react-chartjs-2": "^5.3.1",
     "react-dom": "19.2.3",
+    "three": "^0.184.0",
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.184.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.0",
     "tailwindcss": "^4",

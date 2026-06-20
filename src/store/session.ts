@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Organization, User } from "@/lib";
-import { setAuthToken } from "@/lib/api";
+import { setAgencyId, setAuthToken, setOrganizationId, setTenantId } from "@/lib/api";
 
 type SessionState = {
   tenant: Organization | null;
@@ -9,11 +9,13 @@ type SessionState = {
   roles: string[];
   activeAgencyId: string | null;
   token: string | null;
+  currency: string;
   setTenant: (t: Organization | null) => void;
   setUser: (u: User | null) => void;
   setRoles: (roles: string[]) => void;
   setActiveAgencyId: (id: string | null) => void;
   setToken: (token: string | null) => void;
+  setCurrency: (currency: string) => void;
   logout: () => void;
 };
 
@@ -25,6 +27,7 @@ export const useSession = create<SessionState>()(
       roles: [],
       activeAgencyId: null,
       token: null,
+      currency: "XAF",
       setTenant: (tenant) => set({ tenant }),
       setUser: (user) => set({ user }),
       setRoles: (roles) => set({ roles }),
@@ -33,9 +36,13 @@ export const useSession = create<SessionState>()(
         setAuthToken(token);
         set({ token });
       },
+      setCurrency: (currency) => set({ currency }),
       logout: () => {
         setAuthToken(null);
-        set({ tenant: null, user: null, roles: [], activeAgencyId: null, token: null });
+        setTenantId(null);
+        setOrganizationId(null);
+        setAgencyId(null);
+        set({ tenant: null, user: null, roles: [], activeAgencyId: null, token: null, currency: "XAF" });
       },
     }),
     {
@@ -46,6 +53,7 @@ export const useSession = create<SessionState>()(
         roles: s.roles,
         activeAgencyId: s.activeAgencyId,
         token: s.token,
+        currency: s.currency,
       }),
     }
   )
