@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ProductImage, { ProductImageFallback } from "@/components/ProductImage";
 import { useSession } from "@/store/session";
 import { usePageSearch } from "@/components/PageSearchContext";
 import { useT } from "@/components/i18n/useT";
@@ -1514,8 +1515,20 @@ export default function WarehousePage() {
  <tr key={p.id} className="ys-table-row">
                         <td className="ys-table-cell font-medium">{p.sku || "—"}</td>
  <td className="ys-table-cell">
+ <div className="flex min-w-0 items-center gap-3">
+ <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+ <ProductImage
+ product={p}
+ alt={p.name || p.sku || t("app.catalog.image.alt")}
+ className="h-full w-full object-cover"
+ fallback={<ProductImageFallback />}
+ />
+ </div>
+ <div className="min-w-0">
  <div className="font-medium text-foreground ">{p.name || p.description || "—"}</div>
- <div className="text-xs text-muted-foreground">{p.description || ""}</div>
+ <div className="truncate text-xs text-muted-foreground">{p.description || ""}</div>
+ </div>
+ </div>
  </td>
                         <td className="ys-table-cell text-muted-foreground">{r.categoryName || "—"}</td>
                         <td className="ys-table-cell font-semibold">{r.qty}</td>
@@ -1754,10 +1767,20 @@ export default function WarehousePage() {
                  return (
                    <div key={product.id} className="rounded-md border border-border bg-card p-3">
                      <div className="flex items-start justify-between gap-3">
+                       <div className="flex min-w-0 items-start gap-3">
+                         <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+                           <ProductImage
+                             product={product}
+                             alt={product.name || product.sku || t("app.catalog.image.alt")}
+                             className="h-full w-full object-cover"
+                             fallback={<ProductImageFallback />}
+                           />
+                         </div>
                        <div className="min-w-0">
                          <div className="truncate text-sm font-medium text-foreground">{product.name || product.description || product.sku || "—"}</div>
                          <div className="mt-0.5 text-xs text-muted-foreground">{product.sku || "—"} · {cat}</div>
                          {unassigned && <div className="mt-1 text-[11px] font-semibold text-amber-600">{t("app.part.binAllocation.unassigned")}</div>}
+                       </div>
                        </div>
                        <div className="shrink-0 text-right">
                          <div className="text-xl font-bold" style={{ color: stockColor }}>{qty}</div>
@@ -2027,8 +2050,20 @@ export default function WarehousePage() {
  : "border-border bg-card hover:bg-slate-50 dark:hover:bg-slate-800/40"
  }`}
  >
+ <div className="flex min-w-0 items-center gap-3">
+ <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+ <ProductImage
+ product={p}
+ alt={p.name || p.sku || t("app.catalog.image.alt")}
+ className="h-full w-full object-cover"
+ fallback={<ProductImageFallback />}
+ />
+ </div>
+ <div className="min-w-0">
  <div className="font-medium text-foreground">{p.sku || "—"} — {p.name || p.description || "—"}</div>
- <div className="text-xs text-muted-foreground">{p.description || ""}</div>
+ <div className="truncate text-xs text-muted-foreground">{p.description || ""}</div>
+ </div>
+ </div>
  </button>
  ))}
  {!opCandidates.length && <div className="text-sm text-muted-foreground">{t("app.warehouse.ops.wizard.noResults")}</div>}

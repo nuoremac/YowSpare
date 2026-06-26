@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import ProductImage, { ProductImageFallback } from "@/components/ProductImage";
 import { usePageSearch } from "@/components/PageSearchContext";
 import { useT } from "@/components/i18n/useT";
 import { useSession } from "@/store/session";
@@ -1032,10 +1033,22 @@ export default function InventoryPage() {
  >
                         <td className="ys-table-cell font-medium">{p.sku || "—"}</td>
  <td className="ys-table-cell">
+ <div className="flex min-w-0 items-center gap-3">
+ <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+ <ProductImage
+ product={p}
+ alt={p.name || p.sku || t("app.catalog.image.alt")}
+ className="h-full w-full object-cover"
+ fallback={<ProductImageFallback />}
+ />
+ </div>
+ <div className="min-w-0">
  <div className="font-medium text-foreground ">
  {p.name || p.description || t("app.inventory.unnamed")}
  </div>
- <div className="text-xs text-muted-foreground">{p.description || ""}</div>
+ <div className="truncate text-xs text-muted-foreground">{p.description || ""}</div>
+ </div>
+ </div>
  </td>
                         <td className="ys-table-cell text-muted-foreground">{r.categoryName || "—"}</td>
                         <td className="ys-table-cell font-semibold">{r.qty}</td>
@@ -1120,7 +1133,16 @@ export default function InventoryPage() {
  <div className="space-y-5">
  <div className="ys-card p-4">
  <div className="flex items-start justify-between gap-4">
- <div>
+ <div className="flex min-w-0 items-start gap-3">
+ <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+ <ProductImage
+ product={selectedProduct}
+ alt={selectedProduct.name || selectedProduct.sku || t("app.catalog.image.alt")}
+ className="h-full w-full object-cover"
+ fallback={<ProductImageFallback className="h-6 w-6" />}
+ />
+ </div>
+ <div className="min-w-0">
  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
  {selectedProduct.sku || "—"}
  </div>
@@ -1129,6 +1151,7 @@ export default function InventoryPage() {
  </div>
  <div className="mt-1 text-sm text-muted-foreground ">
  {selectedProduct.categoryName || (selectedProduct.categoryId ? categoryById.get(selectedProduct.categoryId)?.name : "") || "—"}
+ </div>
  </div>
  </div>
  <span className={`inline-flex items-center border px-2 py-1 text-xs font-semibold ${statusBadgeClass(selectedStatus)}`}>

@@ -3,6 +3,8 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CategoryRequest } from '../models/CategoryRequest';
+import type { CreateMediaAssetRequest } from '../models/CreateMediaAssetRequest';
+import type { MediaAsset } from '../models/MediaAsset';
 import type { Product } from '../models/Product';
 import type { ProductCategory } from '../models/ProductCategory';
 import type { ProductRequest } from '../models/ProductRequest';
@@ -73,6 +75,42 @@ export class ProductCatalogService {
             path: {
                 'id': id,
             },
+        });
+    }
+    /**
+     * Lister les medias rattaches a une ressource
+     * @param targetType
+     * @param targetId
+     * @returns MediaAsset OK
+     * @throws ApiError
+     */
+    public static getMediaAssets(
+        targetType: string,
+        targetId: string,
+    ): CancelablePromise<Array<MediaAsset>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/media-assets',
+            query: {
+                'targetType': targetType,
+                'targetId': targetId,
+            },
+        });
+    }
+    /**
+     * Attacher un media a une ressource
+     * @param requestBody
+     * @returns MediaAsset OK
+     * @throws ApiError
+     */
+    public static createMediaAsset(
+        requestBody: CreateMediaAssetRequest,
+    ): CancelablePromise<MediaAsset> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/media-assets',
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
     /**

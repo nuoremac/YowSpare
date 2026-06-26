@@ -9,6 +9,7 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { CategoryRequest } from './models/CategoryRequest';
 export type { CountRequest } from './models/CountRequest';
+export type { CreateMediaAssetRequest } from './models/CreateMediaAssetRequest';
 export type { CreateItemRequest } from './models/CreateItemRequest';
 export type { CreateMovementRequest } from './models/CreateMovementRequest';
 export type { InitiateInventoryRequest } from './models/InitiateInventoryRequest';
@@ -19,6 +20,7 @@ export type { Link } from './models/Link';
 export type { Product } from './models/Product';
 export type { ProductCategory } from './models/ProductCategory';
 export type { ProductRequest } from './models/ProductRequest';
+export type { MediaAsset } from './models/MediaAsset';
 export { ProductTransformation } from './models/ProductTransformation';
 export type { StockLevel } from './models/StockLevel';
 export { StockMovement } from './models/StockMovement';

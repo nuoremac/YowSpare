@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { MediaAsset } from './MediaAsset';
 export type Product = {
     id?: string;
     organizationId?: string;
@@ -19,5 +20,7 @@ export type Product = {
     updatedAt?: string;
     stockable?: boolean;
     perishable?: boolean;
+    mediaAssets?: Array<MediaAsset>;
+    imageFileId?: string;
+    imageUrl?: string;
 };
-

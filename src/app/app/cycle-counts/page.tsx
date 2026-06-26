@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import MovableModal from "@/components/MovableModal";
+import ProductImage, { ProductImageFallback } from "@/components/ProductImage";
 import { usePageSearch } from "@/components/PageSearchContext";
 import { useT } from "@/components/i18n/useT";
 import { useSession } from "@/store/session";
@@ -458,9 +459,19 @@ export default function CycleCountsPage() {
                             key={p.id}
                             type="button"
                             onMouseDown={(e) => { e.preventDefault(); onProductSelect(p.id || ""); }}
-                            className="flex w-full items-start justify-between gap-3 border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-muted"
+                            className="flex w-full items-center justify-between gap-3 border-b border-border px-3 py-2 text-left last:border-b-0 hover:bg-muted"
                           >
-                            <span className="font-medium text-foreground">{p.sku || "—"} · {p.name || ""}</span>
+                            <span className="flex min-w-0 items-center gap-3">
+                              <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+                                <ProductImage
+                                  product={p}
+                                  alt={p.name || p.sku || t("app.catalog.image.alt")}
+                                  className="h-full w-full object-cover"
+                                  fallback={<ProductImageFallback />}
+                                />
+                              </span>
+                              <span className="truncate font-medium text-foreground">{p.sku || "—"} · {p.name || ""}</span>
+                            </span>
                             <span className="text-xs text-muted-foreground">{p.categoryName || ""}</span>
                           </button>
                         ))

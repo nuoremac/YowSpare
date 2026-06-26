@@ -3,9 +3,17 @@
 import { useEffect, useState } from "react";
 import { useSession } from "@/store/session";
 import { useT } from "@/components/i18n/useT";
-import { BusinessActorsService, EmployeesRolesService } from "@/lib";
+import FileImage from "@/components/FileImage";
+import { BusinessActorsService, EmployeesRolesService, FilesService, UsersService } from "@/lib";
 import type { BusinessActor, BusinessActorRequest, OrganizationMember } from "@/lib";
 import { formatRole, formatRoles } from "@/lib/formatRole";
+import {
+ MAX_IMAGE_UPLOAD_BYTES,
+ imageFileUrl,
+ isImageFile,
+ parseJsonObject,
+ userProfilePhotoFileId,
+} from "@/lib/imageFiles";
 
 function getErrorStatus(error: unknown): number | undefined {
  if (typeof error !== "object" || error === null || !("status" in error)) {
@@ -15,7 +23,7 @@ function getErrorStatus(error: unknown): number | undefined {
 }
 
 export default function ProfilePage() {
- const { user } = useSession();
+ const { user, setUser } = useSession();
  const { t } = useT();
  const [actor, setActor] = useState<BusinessActor | null>(null);
  const [hasActorProfile, setHasActorProfile] = useState(false);
@@ -23,6 +31,9 @@ export default function ProfilePage() {
  const [actorSaving, setActorSaving] = useState(false);
  const [actorSuccess, setActorSuccess] = useState("");
  const [actorError, setActorError] = useState("");
+ const [photoUploading, setPhotoUploading] = useState(false);
+ const [photoSuccess, setPhotoSuccess] = useState("");
+ const [photoError, setPhotoError] = useState("");
  const [isEditingActor, setIsEditingActor] = useState(false);
  const [orgMember, setOrgMember] = useState<OrganizationMember | null>(null);
  const [orgRoleForbidden, setOrgRoleForbidden] = useState(false);
@@ -108,6 +119,67 @@ export default function ProfilePage() {
  setActorForm((prev) => ({ ...prev, [key]: value }));
  };
 
+ const profilePhotoFileId = userProfilePhotoFileId(user);
+ const profilePhotoUrl =
+ user?.profilePhotoUrl || imageFileUrl(profilePhotoFileId);
+ const profileInitials =
+ [user?.firstName, user?.lastName]
+ .filter(Boolean)
+ .join(" ")
+ .split(" ")
+ .map((part) => part[0])
+ .slice(0, 2)
+ .join("")
+ .toUpperCase() || "YS";
+
+ const handleProfilePhotoUpload = async (file: File | null | undefined) => {
+ if (!user || !file) return;
+ setPhotoSuccess("");
+ setPhotoError("");
+ if (!isImageFile(file)) {
+ setPhotoError(t("app.profile.photo.invalid"));
+ return;
+ }
+ if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+ setPhotoError(t("app.profile.photo.tooLarge"));
+ return;
+ }
+
+ setPhotoUploading(true);
+ try {
+ const storedFile = await FilesService.uploadFile({ file });
+ if (!storedFile.id) {
+ throw new Error("Missing uploaded file id.");
+ }
+ const existingPayload = parseJsonObject(user.onboardingPayload);
+ const nextPayload = {
+ ...existingPayload,
+ profilePhotoFileId: storedFile.id,
+ profilePhotoUpdatedAt: new Date().toISOString(),
+ };
+ const updatedUser = await UsersService.updateIdentityOnboarding({
+ accountType: user.accountType || (user.organizationId ? "BUSINESS" : "PROSPECT"),
+ businessType: user.businessType || undefined,
+ step: user.onboardingStep ?? 0,
+ status: user.onboardingStatus,
+ data: nextPayload,
+ });
+ const nextPhotoUrl = imageFileUrl(storedFile.id);
+ setUser({
+ ...user,
+ ...updatedUser,
+ onboardingPayload: updatedUser.onboardingPayload || JSON.stringify(nextPayload),
+ profilePhotoFileId: storedFile.id,
+ profilePhotoUrl: nextPhotoUrl,
+ });
+ setPhotoSuccess(t("app.profile.photo.saved"));
+ } catch {
+ setPhotoError(t("app.profile.photo.error"));
+ } finally {
+ setPhotoUploading(false);
+ }
+ };
+
  const saveActorProfile = async () => {
  setActorSaving(true);
  setActorError("");
@@ -161,6 +233,44 @@ export default function ProfilePage() {
  <section className="ys-card p-5">
  <div className="ys-section-title">
  {t("app.profile.section.account")}
+ </div>
+ <div className="mt-4 flex flex-wrap items-center gap-4 rounded-lg border border-border bg-muted/30 p-4">
+ <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-card text-lg font-semibold text-foreground">
+ <FileImage
+ fileId={profilePhotoFileId}
+ src={profilePhotoUrl}
+ alt={t("app.profile.photo.alt")}
+ className="h-full w-full object-cover"
+ fallback={profileInitials}
+ />
+ </div>
+ <div className="min-w-0 flex-1">
+ <div className="text-sm font-semibold text-foreground">{t("app.profile.photo.title")}</div>
+ <p className="mt-1 text-sm text-muted-foreground">{t("app.profile.photo.subtitle")}</p>
+ <div className="mt-3 flex flex-wrap items-center gap-3">
+ <label
+ className={`ys-btn-secondary px-3 py-2 text-sm ${
+ photoUploading ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+ }`}
+ >
+ {photoUploading ? t("app.profile.photo.uploading") : t("app.profile.photo.upload")}
+ <input
+ type="file"
+ accept="image/*"
+ className="sr-only"
+ disabled={photoUploading}
+ onChange={(event) => {
+ const input = event.currentTarget;
+ const file = input.files?.[0];
+ void handleProfilePhotoUpload(file);
+ input.value = "";
+ }}
+ />
+ </label>
+ {photoSuccess ? <span className="text-sm text-emerald-600">{photoSuccess}</span> : null}
+ {photoError ? <span className="text-sm text-red-600">{photoError}</span> : null}
+ </div>
+ </div>
  </div>
  <ul className="mt-3 divide-y divide-border text-sm text-foreground">
  <li className="flex items-center justify-between gap-6 py-2">

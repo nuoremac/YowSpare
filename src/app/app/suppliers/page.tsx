@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ProductImage, { ProductImageFallback } from "@/components/ProductImage";
 import { usePageSearch } from "@/components/PageSearchContext";
 import { hasOrganizationAccess } from "@/lib/accessControl";
 import { useT } from "@/components/i18n/useT";
@@ -1108,7 +1109,20 @@ export default function SuppliersPage() {
  const label = p ? `${p.sku || "—"} — ${p.name || p.description || "—"}` : row.productId;
  return (
  <tr key={row.id || row.productId}>
- <td className="ys-table-cell pl-4 font-medium">{label}</td>
+ <td className="ys-table-cell pl-4 font-medium">
+ <div className="flex min-w-0 items-center gap-3">
+ <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+ <ProductImage
+ product={p}
+ productId={row.productId}
+ alt={label || t("app.catalog.image.alt")}
+ className="h-full w-full object-cover"
+ fallback={<ProductImageFallback />}
+ />
+ </div>
+ <span className="truncate">{label}</span>
+ </div>
+ </td>
  <td className="ys-table-cell text-muted-foreground">{row.leadTimeDays ?? "—"}</td>
  <td className="ys-table-cell text-muted-foreground">{row.moq ?? "—"}</td>
  <td className="ys-table-cell text-muted-foreground">
@@ -1198,10 +1212,20 @@ export default function SuppliersPage() {
 				             setLinkForm((prev) => ({ ...prev, productId: p.id || "" }));
 				             setProductDropdownOpen(false);
 				           }}
-				           className="flex cursor-pointer flex-col px-3 py-2 text-sm hover:bg-muted"
+				           className="flex cursor-pointer items-center gap-3 px-3 py-2 text-sm hover:bg-muted"
 				         >
+				           <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+				             <ProductImage
+				               product={p}
+				               alt={p.name || p.sku || t("app.catalog.image.alt")}
+				               className="h-full w-full object-cover"
+				               fallback={<ProductImageFallback />}
+				             />
+				           </span>
+				           <span className="min-w-0">
 				           <span className="font-medium text-foreground">{p.sku || "—"}</span>
 				           <span className="text-xs text-muted-foreground">{p.name || p.description || "—"}</span>
+				           </span>
 				         </li>
 				       ))}
 				     </ul>

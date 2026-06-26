@@ -2,12 +2,15 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import ProductImage, { ProductImageFallback, rememberProductImageFileId } from "@/components/ProductImage";
 import { usePageSearch } from "@/components/PageSearchContext";
 import { useT } from "@/components/i18n/useT";
 import { useSession } from "@/store/session";
+import { FilesService } from "@/lib";
 import { ProductCatalogService } from "@/lib-stock";
 import type { Product, ProductCategory, ProductRequest } from "@/lib-stock";
 import { hasAuthority, hasFullOrganizationAccess } from "@/lib/accessControl";
+import { MAX_IMAGE_UPLOAD_BYTES, imageFileUrl, isImageFile } from "@/lib/imageFiles";
 
 type ProductForm = {
   sku: string;
@@ -92,6 +95,7 @@ export default function CatalogPage() {
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+  const [uploadingProductImageId, setUploadingProductImageId] = useState<string | null>(null);
   const [categorySearch, setCategorySearch] = useState("");
 
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null);
@@ -366,6 +370,56 @@ export default function CatalogPage() {
       );
     } finally {
       setDeletingCategoryId(null);
+    }
+  };
+
+  const handleProductImageUpload = async (product: Product, file: File | null | undefined) => {
+    if (!canManageCatalog || !product.id || !file) return;
+    if (!isImageFile(file)) {
+      showToast(t("app.catalog.image.invalid"), "error");
+      return;
+    }
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      showToast(t("app.catalog.image.tooLarge"), "error");
+      return;
+    }
+
+    setUploadingProductImageId(product.id);
+    try {
+      const storedFile = await FilesService.uploadFile({ file });
+      if (!storedFile.id) throw new Error("Missing uploaded file id.");
+      rememberProductImageFileId(product.id, storedFile.id);
+      const position = (product.mediaAssets?.length || 0) + 1;
+      const mediaAsset = await ProductCatalogService.createMediaAsset({
+        targetType: "PRODUCT",
+        targetId: product.id,
+        fileId: storedFile.id,
+        mimeType: file.type || storedFile.contentType || "image/*",
+        position,
+        altText: product.name || product.sku || "Product image",
+      });
+      const nextImageUrl = imageFileUrl(storedFile.id);
+      setProducts((prev) =>
+        prev.map((item) =>
+          item.id === product.id
+            ? {
+                ...item,
+                imageFileId: storedFile.id,
+                imageUrl: nextImageUrl,
+                mediaAssets: [
+                  ...(item.mediaAssets || []),
+                  { ...mediaAsset, fileId: storedFile.id, imageUrl: nextImageUrl },
+                ],
+              }
+            : item,
+        ),
+      );
+      showToast(t("app.catalog.image.updated"));
+    } catch (error: any) {
+      const apiMsg = error?.body?.message || error?.message;
+      showToast(apiMsg && apiMsg !== "Failed" ? apiMsg : t("app.catalog.image.failed"), "error");
+    } finally {
+      setUploadingProductImageId(null);
     }
   };
 
@@ -732,6 +786,7 @@ export default function CatalogPage() {
               <table className="ys-table">
                 <thead className="ys-table-head">
                   <tr>
+                    <th className="ys-table-cell">{t("app.catalog.table.image")}</th>
                     <th className="ys-table-cell">{t("app.catalog.table.sku")}</th>
                     <th className="ys-table-cell">{t("app.catalog.table.name")}</th>
                     <th className="ys-table-cell">{t("app.catalog.table.category")}</th>
@@ -747,6 +802,52 @@ export default function CatalogPage() {
                   {filteredProducts.length ? (
                     filteredProducts.map((product) => (
                       <tr key={product.id || `${product.sku}-${product.name}`} className="ys-table-row">
+                        <td className="ys-table-cell">
+                          <div className="flex items-center gap-2">
+                            <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+                              <ProductImage
+                                product={product}
+                                alt={product.name || product.sku || t("app.catalog.image.alt")}
+                                className="h-full w-full object-cover"
+                                fallback={<ProductImageFallback />}
+                              />
+                            </div>
+                            {canManageCatalog ? (
+                              <label
+                                className={`ys-icon-btn-edit ${
+                                  uploadingProductImageId === product.id || !product.id
+                                    ? "cursor-not-allowed opacity-60"
+                                    : "cursor-pointer"
+                                }`}
+                                aria-label={t("app.catalog.image.upload")}
+                                title={t("app.catalog.image.upload")}
+                              >
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="sr-only"
+                                  disabled={uploadingProductImageId === product.id || !product.id}
+                                  onChange={(event) => {
+                                    const input = event.currentTarget;
+                                    const file = input.files?.[0];
+                                    void handleProductImageUpload(product, file);
+                                    input.value = "";
+                                  }}
+                                />
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  className="ys-btn-icon"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="1.8"
+                                >
+                                  <path d="M4 8h3l1.5-2h7L17 8h3v11H4V8z" strokeLinecap="round" strokeLinejoin="round" />
+                                  <circle cx="12" cy="13.5" r="3" />
+                                </svg>
+                              </label>
+                            ) : null}
+                          </div>
+                        </td>
                         <td className="ys-table-cell font-medium text-foreground">{product.sku || "—"}</td>
                         <td className="ys-table-cell">{product.name || "—"}</td>
                         <td className="ys-table-cell">
@@ -808,7 +909,7 @@ export default function CatalogPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={canManageCatalog ? 7 : 6} className="ys-table-cell py-8 text-center text-sm text-muted-foreground">
+                      <td colSpan={canManageCatalog ? 8 : 7} className="ys-table-cell py-8 text-center text-sm text-muted-foreground">
                         {t("app.catalog.list.empty")}
                       </td>
                     </tr>

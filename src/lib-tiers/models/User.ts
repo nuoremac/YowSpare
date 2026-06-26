@@ -15,6 +15,11 @@ export type User = {
     plan?: User.plan;
     onboardingStatus?: User.onboardingStatus;
     onboardingStep?: number;
+    accountType?: string;
+    businessType?: string;
+    onboardingPayload?: string;
+    profilePhotoFileId?: string;
+    profilePhotoUrl?: string;
     active?: boolean;
 };
 export namespace User {

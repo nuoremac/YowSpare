@@ -112,14 +112,46 @@ const mapCategory = (value: unknown) => {
   };
 };
 
+const fileImageUrl = (fileId: string) =>
+  `/api/tiers/files/${encodeURIComponent(fileId)}`;
+
+const mapMediaAsset = (value: unknown) => {
+  if (!isObject(value)) return value;
+  const fileId = typeof value.fileId === "string" ? value.fileId : undefined;
+  return {
+    id: value.id,
+    targetType: value.targetType,
+    targetId: value.targetId,
+    fileId,
+    mimeType: value.mimeType,
+    position: value.position,
+    altText: value.altText,
+    ...(fileId ? { imageUrl: fileImageUrl(fileId) } : {}),
+  };
+};
+
 const mapProduct = (
   value: unknown,
   categories: Map<string, JsonObject> = new Map(),
+  mediaAssets: JsonObject[] = [],
 ) => {
   if (!isObject(value)) return value;
   const category =
     typeof value.categoryCode === "string"
       ? categories.get(value.categoryCode)
+      : undefined;
+  const mappedMediaAssets = mediaAssets.map(mapMediaAsset).filter(isObject);
+  const productImage = [...mappedMediaAssets]
+    .reverse()
+    .find(
+      (asset) =>
+        typeof asset.fileId === "string" &&
+        (typeof asset.mimeType !== "string" ||
+          asset.mimeType.toLowerCase().startsWith("image/")),
+    );
+  const imageFileId =
+    productImage && typeof productImage.fileId === "string"
+      ? productImage.fileId
       : undefined;
   return {
     ...value,
@@ -130,6 +162,13 @@ const mapProduct = (
     defaultCostPrice: value.unitPrice,
     stockable: true,
     perishable: false,
+    mediaAssets: mappedMediaAssets,
+    ...(imageFileId
+      ? {
+          imageFileId,
+          imageUrl: fileImageUrl(imageFileId),
+        }
+      : {}),
   };
 };
 
@@ -210,6 +249,70 @@ export const proxyStockRequest = async (
     const frontendPath = pathSegments.join("/");
     const body = await parseBody(request);
     const orgQuery = `organizationId=${encodeURIComponent(context.organizationId)}`;
+
+    const loadMediaAssets = async (targetType: string, targetId: string) => {
+      const query = new URLSearchParams({ targetType, targetId });
+      const result = await callKernel(
+        config.baseUrl,
+        `/api/media-assets?${query.toString()}`,
+        headers,
+      );
+      if (!result.response.ok) return [];
+      const assets = unwrap(result.payload);
+      return Array.isArray(assets) ? assets.filter(isObject) : [];
+    };
+
+    if (request.method === "GET" && frontendPath === "media-assets") {
+      const url = new URL(request.url);
+      const targetType = url.searchParams.get("targetType") || "PRODUCT";
+      const targetId = url.searchParams.get("targetId");
+      if (!targetId) {
+        return NextResponse.json([], { status: 200 });
+      }
+      const result = await callKernel(
+        config.baseUrl,
+        `/api/media-assets?${new URLSearchParams({ targetType, targetId }).toString()}`,
+        headers,
+      );
+      if (!result.response.ok) {
+        return upstreamFailure(result.response, result.payload);
+      }
+      const assets = unwrap(result.payload);
+      return NextResponse.json(
+        Array.isArray(assets) ? assets.map(mapMediaAsset) : [],
+      );
+    }
+
+    if (request.method === "POST" && frontendPath === "media-assets") {
+      const legacy = isObject(body) ? body : {};
+      const result = await callKernel(
+        config.baseUrl,
+        "/api/media-assets",
+        headers,
+        "POST",
+        {
+          targetType:
+            typeof legacy.targetType === "string" ? legacy.targetType : "PRODUCT",
+          targetId: legacy.targetId,
+          fileId: legacy.fileId,
+          mimeType:
+            typeof legacy.mimeType === "string" && legacy.mimeType.trim()
+              ? legacy.mimeType
+              : "image/*",
+          position:
+            typeof legacy.position === "number" && Number.isFinite(legacy.position)
+              ? legacy.position
+              : 0,
+          altText: legacy.altText,
+        },
+      );
+      if (!result.response.ok) {
+        return upstreamFailure(result.response, result.payload);
+      }
+      return NextResponse.json(mapMediaAsset(unwrap(result.payload)), {
+        status: result.response.status,
+      });
+    }
 
     if (request.method === "GET" && frontendPath === "products/categories") {
       const result = await callKernel(
@@ -350,10 +453,9 @@ export const proxyStockRequest = async (
         return upstreamFailure(result.response, result.payload);
       }
       const products = unwrap(result.payload);
+      const productObjects = Array.isArray(products) ? products.filter(isObject) : [];
       return NextResponse.json(
-        Array.isArray(products)
-          ? products.map((value) => mapProduct(value, categories))
-          : [],
+        productObjects.map((value) => mapProduct(value, categories)),
       );
     }
 
@@ -384,7 +486,12 @@ export const proxyStockRequest = async (
       if (!result.response.ok) {
         return upstreamFailure(result.response, result.payload);
       }
-      return NextResponse.json(mapProduct(unwrap(result.payload), categories));
+      const product = unwrap(result.payload);
+      const mediaAssets =
+        isObject(product) && typeof product.id === "string"
+          ? await loadMediaAssets("PRODUCT", product.id)
+          : [];
+      return NextResponse.json(mapProduct(product, categories, mediaAssets));
     }
 
     if (

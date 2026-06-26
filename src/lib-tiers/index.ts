@@ -44,6 +44,7 @@ export type { SystemAudit } from './models/SystemAudit';
 export type { ThirdPartyStatistics } from './models/ThirdPartyStatistics';
 export type { TimeInterval } from './models/TimeInterval';
 export type { UpdateOnboardingRequest } from './models/UpdateOnboardingRequest';
+export type { UpdateIdentityOnboardingRequest } from './models/UpdateIdentityOnboardingRequest';
 export type { UpdatePlanRequest } from './models/UpdatePlanRequest';
 export { User } from './models/User';
 

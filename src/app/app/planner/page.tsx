@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/store/session";
+import ProductImage, { ProductImageFallback } from "@/components/ProductImage";
 import { AgenciesService, EmployeesRolesService } from "@/lib";
 import type { Agency, OrganizationMember } from "@/lib";
 import { ProductCatalogService, StockLevelsService, StockMovementsService } from "@/lib-stock";
@@ -511,6 +512,14 @@ export default function PlannerPage() {
  return products.find((p) => p.id === detailsId) || null;
  }, [detailsId, products]);
 
+ const productById = useMemo(() => {
+ const map = new Map<string, Product>();
+ products.forEach((product) => {
+ if (product.id) map.set(product.id, product);
+ });
+ return map;
+ }, [products]);
+
  const detailsLevels = useMemo(() => {
  if (!detailsId) return [];
  const inner = qtyByProductAgency.get(detailsId);
@@ -918,11 +927,24 @@ export default function PlannerPage() {
  </tr>
  </thead>
  <tbody className="divide-y divide-slate-200 bg-card text-foreground dark:divide-slate-800 ">
- {cycleCandidates.map((c) => (
+ {cycleCandidates.map((c) => {
+ const product = productById.get(c.productId);
+ return (
  <tr key={c.productId}>
  <td className="px-3 py-2 font-mono text-xs">{c.sku}</td>
  <td className="px-3 py-2">
- <div className="font-medium">{c.name}</div>
+ <div className="flex min-w-0 items-center gap-3">
+ <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+ <ProductImage
+ product={product}
+ productId={c.productId}
+ alt={c.name || c.sku || t("app.catalog.image.alt")}
+ className="h-full w-full object-cover"
+ fallback={<ProductImageFallback />}
+ />
+ </div>
+ <div className="truncate font-medium">{c.name}</div>
+ </div>
  </td>
  <td className="px-3 py-2 font-semibold">{c.onHand}</td>
  <td className="px-3 py-2 text-muted-foreground dark:text-muted-foreground">
@@ -948,7 +970,8 @@ export default function PlannerPage() {
  </button>
  </td>
  </tr>
- ))}
+ );
+ })}
  {!cycleCandidates.length && (
  <tr>
  <td className="px-3 py-3 text-muted-foreground dark:text-muted-foreground" colSpan={6}>
@@ -976,7 +999,9 @@ export default function PlannerPage() {
  </tr>
  </thead>
  <tbody className="divide-y divide-slate-200 bg-card text-foreground dark:divide-slate-800 ">
- {paged.items.map((r) => (
+ {paged.items.map((r) => {
+ const product = productById.get(r.id);
+ return (
  <tr
  key={r.id}
  className="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-slate-950"
@@ -984,8 +1009,21 @@ export default function PlannerPage() {
  >
  <td className="px-3 py-2 font-mono text-xs">{r.sku}</td>
  <td className="px-3 py-2">
+ <div className="flex min-w-0 items-center gap-3">
+ <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+ <ProductImage
+ product={product}
+ productId={r.id}
+ alt={r.name || r.sku || t("app.catalog.image.alt")}
+ className="h-full w-full object-cover"
+ fallback={<ProductImageFallback />}
+ />
+ </div>
+ <div className="min-w-0">
  <div className="font-medium">{r.name}</div>
  <div className="text-xs text-muted-foreground dark:text-muted-foreground">{r.category}</div>
+ </div>
+ </div>
  </td>
  <td className="px-3 py-2 font-semibold">{r.onHand}</td>
  <td className="px-3 py-2">{r.min || "—"}</td>
@@ -1014,7 +1052,8 @@ export default function PlannerPage() {
  {r.lastMove ? formatDate(r.lastMove) : "—"}
  </td>
  </tr>
- ))}
+ );
+ })}
  {!paged.items.length && (
  <tr>
  <td className="px-3 py-3 text-muted-foreground dark:text-muted-foreground" colSpan={9}>
@@ -1073,6 +1112,14 @@ export default function PlannerPage() {
  ) : (
  <div className="space-y-4">
  <div className="ys-card p-4">
+ <div className="mb-3 grid h-24 w-24 place-items-center overflow-hidden rounded-xl border border-border bg-muted text-muted-foreground">
+ <ProductImage
+ product={detailsProduct}
+ alt={detailsProduct.name || detailsProduct.sku || t("app.catalog.image.alt")}
+ className="h-full w-full object-cover"
+ fallback={<ProductImageFallback className="h-7 w-7" />}
+ />
+ </div>
  <div className="ys-section-title">
  {detailsProduct.sku || "—"}
  </div>
@@ -1196,11 +1243,26 @@ export default function PlannerPage() {
  </tr>
  </thead>
  <tbody className="divide-y divide-slate-200 bg-card text-foreground dark:divide-slate-800 ">
- {batchItems.map((it) => (
+ {batchItems.map((it) => {
+ const product = productById.get(it.productId);
+ return (
  <tr key={it.productId}>
  <td className="px-3 py-2">
+ <div className="flex min-w-0 items-center gap-3">
+ <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+ <ProductImage
+ product={product}
+ productId={it.productId}
+ alt={it.name || it.sku || t("app.catalog.image.alt")}
+ className="h-full w-full object-cover"
+ fallback={<ProductImageFallback />}
+ />
+ </div>
+ <div className="min-w-0">
  <div className="font-mono text-xs text-muted-foreground dark:text-muted-foreground">{it.sku}</div>
  <div className="font-medium">{it.name}</div>
+ </div>
+ </div>
  </td>
  <td className="px-3 py-2">
  <input
@@ -1232,7 +1294,8 @@ export default function PlannerPage() {
  </button>
  </td>
  </tr>
- ))}
+ );
+ })}
  </tbody>
  </table>
  </div>

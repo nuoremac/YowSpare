@@ -6,6 +6,7 @@ import Nav from "./Nav";
 import { useSession } from "@/store/session";
 import { useRouter } from "next/navigation";
 import { PageSearchProvider } from "@/components/PageSearchContext";
+import FileImage from "@/components/FileImage";
 import { setAgencyId, setAuthToken, setOrganizationId, setTenantId } from "@/lib/api";
 import { useT } from "@/components/i18n/useT";
 import { THEME_CHANGE_EVENT, initTheme, readThemeFromDom, setTheme } from "@/lib/theme";
@@ -19,6 +20,7 @@ import {
  type OrganizationLogoUpdatedDetail,
 } from "@/lib/organizationLogo";
 import { splitPersonName } from "@/lib/personName";
+import { imageFileUrl, userProfilePhotoFileId } from "@/lib/imageFiles";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
  const router = useRouter();
@@ -191,6 +193,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
  .slice(0, 2)
  .join("")
  .toUpperCase() || "YS";
+ const profilePhotoFileId = userProfilePhotoFileId(user);
+ const profilePhotoUrl =
+ user.profilePhotoUrl || imageFileUrl(profilePhotoFileId);
 
  const toggleTheme = () => {
  const nextIsDark = !isDark;
@@ -305,8 +310,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
  </svg>
  )}
  </button>
- <div className="grid h-9 w-9 place-items-center rounded-full bg-muted text-sm font-medium text-foreground">
- {initials}
+ <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-muted text-sm font-medium text-foreground">
+ <FileImage
+ fileId={profilePhotoFileId}
+ src={profilePhotoUrl}
+ alt={`${user.firstName || user.email || "User"} profile`}
+ className="h-full w-full object-cover"
+ fallback={initials}
+ />
  </div>
  </div>
  </div>

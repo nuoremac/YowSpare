@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import ProductImage, { ProductImageFallback } from "@/components/ProductImage";
 import { useSession } from "@/store/session";
 import { AgenciesService } from "@/lib";
 import type { Agency } from "@/lib";
@@ -271,11 +272,13 @@ export default function PartDetailPage() {
  <header className="ys-header-card p-5">
  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
  <div className="flex items-start gap-3">
- <span className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-muted-foreground ">
- <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6">
- <path d="M7 7h10v10H7z" strokeLinecap="round" />
- <path d="M4 10h3M17 10h3M10 4v3M10 17v3" strokeLinecap="round" />
- </svg>
+ <span className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-border bg-card text-muted-foreground ">
+ <ProductImage
+ product={product}
+ alt={product.name || product.sku || t("app.catalog.image.alt")}
+ className="h-full w-full object-cover"
+ fallback={<ProductImageFallback className="h-6 w-6" />}
+ />
  </span>
  <div>
  <div className="ys-section-title">

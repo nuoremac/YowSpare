@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import ProductImage, { ProductImageFallback } from "@/components/ProductImage";
 import { usePageSearch } from "@/components/PageSearchContext";
 import { useT } from "@/components/i18n/useT";
 import { useSession } from "@/store/session";
@@ -198,6 +199,7 @@ export default function CatalogListPage() {
             <table className="ys-table">
               <thead className="ys-table-head">
                 <tr>
+                  <th className="ys-table-cell">{t("app.catalog.table.image")}</th>
                   <th className="ys-table-cell">{t("app.catalog.table.sku")}</th>
                   <th className="ys-table-cell">{t("app.catalog.table.name")}</th>
                   <th className="ys-table-cell">{t("app.catalog.table.category")}</th>
@@ -210,6 +212,16 @@ export default function CatalogListPage() {
                 {filteredProducts.length ? (
                   filteredProducts.map((product) => (
                     <tr key={product.id || product.sku} className="ys-table-row">
+                      <td className="ys-table-cell">
+                        <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-lg border border-border bg-muted text-muted-foreground">
+                          <ProductImage
+                            product={product}
+                            alt={product.name || product.sku || t("app.catalog.image.alt")}
+                            className="h-full w-full object-cover"
+                            fallback={<ProductImageFallback />}
+                          />
+                        </div>
+                      </td>
                       <td className="ys-table-cell font-medium text-foreground">{product.sku || "-"}</td>
                       <td className="ys-table-cell">
                         <div className="font-medium text-foreground">{product.name || "-"}</div>
@@ -230,7 +242,7 @@ export default function CatalogListPage() {
                   ))
                 ) : (
                   <tr>
-                    <td className="ys-table-cell text-center text-muted-foreground" colSpan={6}>
+                    <td className="ys-table-cell text-center text-muted-foreground" colSpan={7}>
                       <div className="flex flex-col items-center gap-3 py-8">
                         <span>{t("app.catalogList.empty")}</span>
                         <Link href="/app/catalog" className="ys-btn-primary">

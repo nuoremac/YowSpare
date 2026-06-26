@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { UpdateOnboardingRequest } from '../models/UpdateOnboardingRequest';
+import type { UpdateIdentityOnboardingRequest } from '../models/UpdateIdentityOnboardingRequest';
 import type { UpdatePlanRequest } from '../models/UpdatePlanRequest';
 import type { User } from '../models/User';
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -39,6 +40,23 @@ export class UsersService {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/users/me/onboarding',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Mettre a jour mon profil d'identite
+     * Persiste les donnees d'identite utilisateur, dont la photo de profil.
+     * @param requestBody
+     * @returns User OK
+     * @throws ApiError
+     */
+    public static updateIdentityOnboarding(
+        requestBody: UpdateIdentityOnboardingRequest,
+    ): CancelablePromise<User> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/users/me/identity-onboarding',
             body: requestBody,
             mediaType: 'application/json',
         });

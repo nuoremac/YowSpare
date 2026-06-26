@@ -7,6 +7,20 @@ type JsonObject = Record<string, unknown>;
 const isJsonObject = (value: unknown): value is JsonObject =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
+const parsePayloadObject = (value: unknown): JsonObject => {
+  if (isJsonObject(value)) return value;
+  if (typeof value !== "string" || !value.trim()) return {};
+  try {
+    const parsed = JSON.parse(value);
+    return isJsonObject(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const fileImageUrl = (fileId: string) =>
+  `/api/tiers/files/${encodeURIComponent(fileId)}`;
+
 const getKernelConfiguration = () => {
   const baseUrl = (
     process.env.KERNEL_CORE_DEST ||
@@ -204,6 +218,11 @@ const toLegacyUser = (data: JsonObject) => {
   const authorities = Array.isArray(data.authorities)
     ? data.authorities
     : undefined;
+  const onboardingPayload = parsePayloadObject(data.onboardingPayload);
+  const profilePhotoFileId =
+    typeof onboardingPayload.profilePhotoFileId === "string"
+      ? onboardingPayload.profilePhotoFileId
+      : undefined;
 
   return {
     id: data.id,
@@ -215,6 +234,15 @@ const toLegacyUser = (data: JsonObject) => {
     plan: data.plan,
     onboardingStatus: data.onboardingStatus,
     onboardingStep: data.onboardingStep,
+    accountType: data.accountType,
+    businessType: data.businessType,
+    onboardingPayload: data.onboardingPayload,
+    ...(profilePhotoFileId
+      ? {
+          profilePhotoFileId,
+          profilePhotoUrl: fileImageUrl(profilePhotoFileId),
+        }
+      : {}),
     active: data.status === "ACTIVE",
   };
 };
